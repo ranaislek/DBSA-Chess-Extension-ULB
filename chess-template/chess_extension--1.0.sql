@@ -205,3 +205,6 @@ CREATE FUNCTION complex_sub(chessboard, chessboard)
   RETURNS chessboard
   AS 'MODULE_PATHNAME', 'chessboard_sub'
   LANGUAGE C IMMUTABLE STRICT PAR
+
+
+-- changes are needed
