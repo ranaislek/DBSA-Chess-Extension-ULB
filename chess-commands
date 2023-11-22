@@ -1,0 +1,23 @@
+chess extension notes:
+
+from smallchesslib.h
+Simply include smallchesslib.h, all code is in this one file, no need for linking. All functions and other resources are also documented in this file, so take a look at it to see the library's API. For a typical use you want to focus on the SCL_Game struct and its associated functions starting with SCL_game*.
+
+where is postgresql folder?
+/etc/postgresql/16/main/
+
+where is pg_config file?
+/usr/lib/postgresql/16/bin/
+
+make:
+PATH=/usr/lib/postgresql/16/bin:$PATH
+cd /home/ranaislek/Documents/417-project/chess/chess-template/
+ls
+make
+sudo make install
+
+
+commands:
+sudo -i -u postgres
+psql chess
+chess=# CREATE EXTENSION chess;
