@@ -13,7 +13,7 @@ make:
 PATH=/usr/lib/postgresql/16/bin:$PATH
 cd /home/ranaislek/Documents/417-project/chess/chess-template/
 ls
-make
+make (make clean)
 sudo make install
 
 

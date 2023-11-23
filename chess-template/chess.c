@@ -44,102 +44,143 @@ the move count, castling right, en passant pieces, ...
 //Data types: chessgame, chessboard. The input/output for your types shall
 //use SAN and FEN notation for chess-game and chess-board respectively.
 
-static ChessGame *
-chessgame_make(char *game, int turn)
+// Make function for ChessGame
+static ChessGame * chessgame_make(const char *newSan) 
 {
-  ChessGame *c = palloc0(sizeof(ChessGame));
-  c->game = game;
-  c->turn = turn;
-  return c;
+    ChessGame *newGame = (ChessGame*)malloc(sizeof(ChessGame));
+    if (newGame == NULL) {
+        // Handle memory allocation failure
+        return NULL;
+    }
+
+    // Initialize ChessGame
+    strncpy(newGame->san, newSan, sizeof(newGame->san) - 1);
+    newGame->san[sizeof(newGame->san) - 1] = '\0'; // Ensure null-terminated string
+
+    return newGame;
 }
 
-static ChessBoard *
-chessboard_make(char *board, int turn)
+// Make function for ChessBoard
+static ChessBoard * chessboard_make(const char *newFen) 
 {
-  ChessBoard *c = palloc0(sizeof(ChessBoard));
-  c->board = board;
-  c->turn = turn;
-  return c;
+    ChessBoard *newBoard = (ChessBoard*)malloc(sizeof(ChessBoard));
+    if (newBoard == NULL) {
+        // Handle memory allocation failure
+        return NULL;
+    }
+
+    // Initialize ChessBoard
+    strncpy(newBoard->fen, newFen, sizeof(newBoard->fen) - 1);
+    newBoard->fen[sizeof(newBoard->fen) - 1] = '\0'; // Ensure null-terminated string
+
+    return newBoard;
 }
 
 /*****************************************************************************/
+/*
+ * Convert ChessGame to string representation
+ */
+static char *chessgame_to_str(const ChessGame *c) {
+    char *result = palloc(strlen(c->san) + 1);
+    strcpy(result, c->san);
+    return result;
+}
+
+/*
+ * Convert ChessBoard to string representation
+ */
+static char *chessboard_to_str(const ChessBoard *c) {
+    char *result = palloc(strlen(c->fen) + 1);
+    strcpy(result, c->fen);
+    return result;
+}
+
+/*
+ * Convert string representation to ChessBoard
+ */
+static ChessBoard *str_to_chessboard(const char *str) {
+    ChessBoard *result = (ChessBoard *)palloc(sizeof(ChessBoard));
+    
+    // Assuming FEN string is directly copied
+    strncpy(result->fen, str, sizeof(result->fen) - 1);
+    result->fen[sizeof(result->fen) - 1] = '\0'; // Ensure null-terminated
+
+    // You might want to parse the FEN string and set the SCL_Board accordingly
+
+    return result;
+}
+
+/*
+ * Convert string representation to ChessGame
+ */
+static ChessGame *str_to_chessgame(const char *str) {
+    ChessGame *result = (ChessGame *)palloc(sizeof(ChessGame));
+    
+    // Assuming SAN string is directly copied
+    strncpy(result->san, str, sizeof(result->san) - 1);
+    result->san[sizeof(result->san) - 1] = '\0'; // Ensure null-terminated
+
+    // You might want to parse the SAN string and set the SCL_Game accordingly
+
+    return result;
+}
+
+
+/*****************************************************************************/
+/*
+ * Input function for ChessGame
+ */
 PG_FUNCTION_INFO_V1(chessgame_in);
-Datum
-chessgame_in(PG_FUNCTION_ARGS)
-{
-  char *str = PG_GETARG_CSTRING(0);
-  ChessGame *result;
-  int turn;
-  if (sscanf(str, "%d", &turn) != 1)
-    ereport(ERROR,
-            (errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
-             errmsg("invalid input syntax for chessgame: \"%s\"",
-                    str)));
-  result = chessgame_make(str, turn);
-  PG_RETURN_CHESSGAME_P(result);
+
+Datum chessgame_in(PG_FUNCTION_ARGS) {
+    char *str = PG_GETARG_CSTRING(0);
+    ChessGame *result;
+
+    result = str_to_chessgame(str);
+
+    PG_RETURN_CHESSGAME_P(result);
 }
 
-/*****************************************************************************/
-
-
+/*
+ * Output function for ChessGame
+ */
 PG_FUNCTION_INFO_V1(chessgame_out);
-Datum
-chessgame_out(PG_FUNCTION_ARGS)
-{
-  ChessGame *chessgame = PG_GETARG_CHESSGAME_P(0);
-  char *result;
-  result = psprintf("(%s,%d)", chessgame->game, chessgame->turn);
-  PG_RETURN_CSTRING(result);
+
+Datum chessgame_out(PG_FUNCTION_ARGS) {
+    ChessGame *game = PG_GETARG_CHESSGAME_P(0);
+    char *result;
+
+    result = chessgame_to_str(game);
+
+    PG_RETURN_CSTRING(result);
 }
 
-/*****************************************************************************/
-
-static char *
-chessgame_to_str(const ChessGame *c)
-{
-  char *result = psprintf("(%s,%d)", c->game, c->turn);
-  return result;
-}
-
-/*****************************************************************************/
-
+/*
+ * Input function for ChessBoard
+ */
 PG_FUNCTION_INFO_V1(chessboard_in);
-Datum
-chessboard_in(PG_FUNCTION_ARGS)
-{
-  char *str = PG_GETARG_CSTRING(0);
-  ChessBoard *result;
-  int turn;
-  if (sscanf(str, "%d", &turn) != 1)
-    ereport(ERROR,
-            (errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
-             errmsg("invalid input syntax for chessboard: \"%s\"",
-                    str)));
-  result = chessboard_make(str, turn);
-  PG_RETURN_CHESSGAME_P(result);
+Datum chessboard_in(PG_FUNCTION_ARGS) {
+    char *str = PG_GETARG_CSTRING(0);
+    ChessBoard *result;
+
+    result = str_to_chessboard(str);
+
+    PG_RETURN_CHESSBOARD_P(result);
 }
 
-/*****************************************************************************/
-
+/*
+ * Output function for ChessBoard
+ */
 PG_FUNCTION_INFO_V1(chessboard_out);
-Datum
-chessboard_out(PG_FUNCTION_ARGS)
-{
-  ChessBoard *chessboard = PG_GETARG_CHESSGAME_P(0);
-  char *result;
-  result = psprintf("(%s,%d)", chessboard->board, chessboard->turn);
-  PG_RETURN_CSTRING(result);
+
+Datum chessboard_out(PG_FUNCTION_ARGS) {
+    ChessBoard *board = PG_GETARG_CHESSBOARD_P(0);
+    char *result;
+
+    result = chessboard_to_str(board);
+
+    PG_RETURN_CSTRING(result);
 }
-
-/*****************************************************************************/
-
-static char *
-chessboard_to_str(const ChessBoard *c)
-{
-  char *result = psprintf("(%s,%d)", c->board, c->turn);
-  return result;
-}
-
 /*****************************************************************************/
 
 PG_FUNCTION_INFO_V1(getBoard);

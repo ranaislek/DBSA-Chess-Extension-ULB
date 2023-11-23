@@ -45,60 +45,81 @@ the move count, castling right, en passant pieces, ...
  * Input/Output
  ******************************************************************************/
 
- CREATE OR REPLACE FUNCTION chess_in(cstring)
-   RETURNS chessgame
-   AS 'MODULE_PATHNAME'
-   LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
-
-CREATE OR REPLACE FUNCTION chess_out(chessgame)
-    RETURNS cstring
-    AS 'MODULE_PATHNAME'
-    LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
-
-CREATE OR REPLACE FUNCTION chess_recv(internal)
+CREATE OR REPLACE FUNCTION chessgame_in(cstring)
     RETURNS chessgame
     AS 'MODULE_PATHNAME'
     LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
-CREATE OR REPLACE FUNCTION chess_send(chessgame)
+CREATE OR REPLACE FUNCTION chessgame_out(chessgame)
+    RETURNS cstring
+    AS 'MODULE_PATHNAME'
+    LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION chessgame_recv(internal)
+    RETURNS chessgame
+    AS 'MODULE_PATHNAME'
+    LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION chessgame_send(chessgame)
     RETURNS bytea
     AS 'MODULE_PATHNAME'
     LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
 CREATE TYPE chessgame (
     internallength = 16,
-    input          = chess_in,
-    output         = chess_out,
-    receive        = chess_recv,
-    send           = chess_send,
+    input          = chessgame_in,
+    output         = chessgame_out,
+    receive        = chessgame_recv,
+    send           = chessgame_send,
     alignment      = double
 );
 
-CREATE OR REPLACE FUNCTION chess(text)
-    RETURNS chessgame
-    AS 'MODULE_PATHNAME', 'chess_cast_from_text'
+CREATE OR REPLACE FUNCTION chessboard_in(cstring)
+    RETURNS chessboard
+    AS 'MODULE_PATHNAME'
     LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
-CREATE OR REPLACE FUNCTION text(chessgame)
-    RETURNS text
-    AS 'MODULE_PATHNAME', 'chess_cast_to_text'
+CREATE OR REPLACE FUNCTION chessboard_out(chessboard)
+    RETURNS cstring
+    AS 'MODULE_PATHNAME'
     LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
-CREATE CAST (text as chessgame) WITH FUNCTION chess(text) AS IMPLICIT;
-CREATE CAST (chessgame as text) WITH FUNCTION text(chessgame);
+CREATE OR REPLACE FUNCTION chessboard_recv(internal)
+    RETURNS chessboard
+    AS 'MODULE_PATHNAME'
+    LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION chessboard_send(chessboard)
+    RETURNS bytea
+    AS 'MODULE_PATHNAME'
+    LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+
+CREATE TYPE chessboard (
+    internallength = 16,
+    input          = chessboard_in,
+    output         = chessboard_out,
+    receive        = chessboard_recv,
+    send           = chessboard_send,
+    alignment      = double
+);
 
 /******************************************************************************
  * Constructor
  ******************************************************************************/
 
-CREATE FUNCTION chess(text)
+CREATE FUNCTION chessgame(text)
     RETURNS chessgame
-    AS 'MODULE_PATHNAME', 'chess_constructor'
+    AS 'MODULE_PATHNAME', 'chessgame_constructor'
+    LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+
+CREATE FUNCTION chessboard(text)
+    RETURNS chessboard
+    AS 'MODULE_PATHNAME', 'chessboard_constructor'
     LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
 /******************************************************************************
-    * Accessing values
-    ******************************************************************************/ 
+ * Accessing values
+ ******************************************************************************/
 
 CREATE FUNCTION getBoard(chessgame, integer)
     RETURNS chessboard
@@ -121,5 +142,7 @@ CREATE FUNCTION hasBoard(chessgame, chessboard, integer)
     LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
 /******************************************************************************
-    * Indexing
-    ******************************************************************************/
+ * Indexing
+ ******************************************************************************/
+
+-- Add your indexing definitions here, if needed.
