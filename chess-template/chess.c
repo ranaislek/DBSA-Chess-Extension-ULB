@@ -44,60 +44,22 @@ the move count, castling right, en passant pieces, ...
 //Data types: chessgame, chessboard. The input/output for your types shall
 //use SAN and FEN notation for chess-game and chess-board respectively.
 
-// Make function for ChessGame
-static ChessGame * chessgame_make(const char *newSan) 
-{
-    ChessGame *newGame = (ChessGame*)malloc(sizeof(ChessGame));
-    if (newGame == NULL) {
-        // Handle memory allocation failure
-        return NULL;
-    }
-
-    // Initialize ChessGame
-    strncpy(newGame->san, newSan, sizeof(newGame->san) - 1);
-    newGame->san[sizeof(newGame->san) - 1] = '\0'; // Ensure null-terminated string
-
-    return newGame;
-}
-
-// Make function for ChessBoard
-static ChessBoard * chessboard_make(const char *newFen) 
-{
-    ChessBoard *newBoard = (ChessBoard*)malloc(sizeof(ChessBoard));
-    if (newBoard == NULL) {
-        // Handle memory allocation failure
-        return NULL;
-    }
-
-    // Initialize ChessBoard
-    strncpy(newBoard->fen, newFen, sizeof(newBoard->fen) - 1);
-    newBoard->fen[sizeof(newBoard->fen) - 1] = '\0'; // Ensure null-terminated string
-
-    return newBoard;
-}
-
-/*****************************************************************************/
-/*
- * Convert ChessGame to string representation
- */
+//dummy functions needs to change ofc
+// Convert ChessGame to string representation
 static char *chessgame_to_str(const ChessGame *c) {
     char *result = palloc(strlen(c->san) + 1);
     strcpy(result, c->san);
     return result;
 }
 
-/*
- * Convert ChessBoard to string representation
- */
+// Convert ChessBoard to string representation
 static char *chessboard_to_str(const ChessBoard *c) {
     char *result = palloc(strlen(c->fen) + 1);
     strcpy(result, c->fen);
     return result;
 }
 
-/*
- * Convert string representation to ChessBoard
- */
+//Convert string representation to ChessBoard
 static ChessBoard *str_to_chessboard(const char *str) {
     ChessBoard *result = (ChessBoard *)palloc(sizeof(ChessBoard));
     
@@ -110,9 +72,7 @@ static ChessBoard *str_to_chessboard(const char *str) {
     return result;
 }
 
-/*
- * Convert string representation to ChessGame
- */
+// Convert string representation to ChessGame
 static ChessGame *str_to_chessgame(const char *str) {
     ChessGame *result = (ChessGame *)palloc(sizeof(ChessGame));
     
@@ -127,9 +87,7 @@ static ChessGame *str_to_chessgame(const char *str) {
 
 
 /*****************************************************************************/
-/*
- * Input function for ChessGame
- */
+// Input function for ChessGame
 PG_FUNCTION_INFO_V1(chessgame_in);
 
 Datum chessgame_in(PG_FUNCTION_ARGS) {
@@ -141,9 +99,7 @@ Datum chessgame_in(PG_FUNCTION_ARGS) {
     PG_RETURN_CHESSGAME_P(result);
 }
 
-/*
- * Output function for ChessGame
- */
+// Output function for ChessGame
 PG_FUNCTION_INFO_V1(chessgame_out);
 
 Datum chessgame_out(PG_FUNCTION_ARGS) {
@@ -155,9 +111,7 @@ Datum chessgame_out(PG_FUNCTION_ARGS) {
     PG_RETURN_CSTRING(result);
 }
 
-/*
- * Input function for ChessBoard
- */
+// Input function for ChessBoard
 PG_FUNCTION_INFO_V1(chessboard_in);
 Datum chessboard_in(PG_FUNCTION_ARGS) {
     char *str = PG_GETARG_CSTRING(0);
@@ -168,9 +122,7 @@ Datum chessboard_in(PG_FUNCTION_ARGS) {
     PG_RETURN_CHESSBOARD_P(result);
 }
 
-/*
- * Output function for ChessBoard
- */
+// Output function for ChessBoard
 PG_FUNCTION_INFO_V1(chessboard_out);
 
 Datum chessboard_out(PG_FUNCTION_ARGS) {

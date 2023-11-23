@@ -322,14 +322,14 @@ void SCL_boardRandomMove(SCL_Board board, SCL_RandomFunction randFunc,
   0 (this is included in SCL_FEN_MAX_LENGTH). The number of bytes written
   (including the terminating 0) is returned.
 */
-uint8_t SCL_boardToFEN(SCL_Board board, char *string);
+uint8_t SCL_boardToFEN(SCL_Board board, char *string); //!!
 
 /**
   Loads a board from FEN (Forsyth–Edwards Notation) string. Returns 1 on
   success, 0 otherwise. XFEN isn't supported fully but a start position in
   chess960 can be loaded with this function. 
 */
-uint8_t SCL_boardFromFEN(SCL_Board board, const char *string);
+uint8_t SCL_boardFromFEN(SCL_Board board, const char *string); //!!
 
 /**
   Returns an approximate/heuristic board rating as a number, 0 meaning equal
@@ -585,7 +585,7 @@ uint8_t SCL_gameGetRepetiotionMove(SCL_Game *game,
   adhere to the PGN input format, but should accept most sanely written PGN
   strings.
 */
-void SCL_recordFromPGN(SCL_Record r, const char *pgn);
+void SCL_recordFromPGN(SCL_Record r, const char *pgn); //!!
 
 uint16_t SCL_recordLength(const SCL_Record r);
 
@@ -680,7 +680,7 @@ void SCL_printBoardSimple(
 
 void SCL_printSquareUTF8(uint8_t square, SCL_PutCharFunction putCharFunc);
 void SCL_printPGN(SCL_Record r, SCL_PutCharFunction putCharFunc,
-  SCL_Board initialState);
+  SCL_Board initialState); //!!
 
 /**
   Reads a move from string (the notation format is described at the top of this

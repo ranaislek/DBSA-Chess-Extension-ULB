@@ -19,35 +19,35 @@
 
 PG_MODULE_MAGIC;
 
-
-
-/* Structure to represent chess game */
+// Structure to represent chess game
 typedef struct
 {
-    //SCL_Game *game;
-    // Character array to store SAN
-    char san[100];
+    SCL_Record *game; 
 } ChessGame;
 
-/* Structure to represent chess board */
+// Structure to represent chess board
 typedef struct
 {
-    //SCL_Board *board;
-    // Character array to store FEN
-    char fen[100];
+    SCL_Board *board;
 } ChessBoard;
 
-/* FMGR macros for chess type */
+// FMGR macros for chess type 
 #define DatumGetChessGameP(X) ((ChessGame *)DatumGetPointer(X))
 #define ChessGamePGetDatum(X) PointerGetDatum(X)
 #define PG_GETARG_CHESSGAME_P(n) DatumGetChessGameP(PG_GETARG_DATUM(n))
 #define PG_RETURN_CHESSGAME_P(x) return ChessGamePGetDatum(x)
 
-/* Function Declarations */
+#define DatumGetChessBoardP(X) ((ChessBoard *)DatumGetPointer(X))
+#define ChessBoardPGetDatum(X) PointerGetDatum(X)
+#define PG_GETARG_CHESSBOARD_P(n) DatumGetChessBoardP(PG_GETARG_DATUM(n))
+#define PG_RETURN_CHESSBOARD_P(x) return ChessBoardPGetDatum(x)
+
+// Function Declarations 
 Datum chessgame_in(PG_FUNCTION_ARGS);
 Datum chessgame_out(PG_FUNCTION_ARGS);
 Datum chessboard_in(PG_FUNCTION_ARGS);
 Datum chessboard_out(PG_FUNCTION_ARGS);
+
 Datum getBoard(PG_FUNCTION_ARGS);
 Datum getFirstMoves(PG_FUNCTION_ARGS);
 Datum hasOpening(PG_FUNCTION_ARGS);
@@ -57,5 +57,4 @@ static char *chessgame_to_str(const ChessGame *c);
 static char *chessboard_to_str(const ChessBoard *c);
 static ChessGame *str_to_chessgame(const char *str);
 static ChessBoard *str_to_chessboard(const char *str);
-
 #endif
