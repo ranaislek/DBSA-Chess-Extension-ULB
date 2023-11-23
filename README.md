@@ -25,3 +25,6 @@ hasboard -> rana
 
 3 - indices:
 tba
+
+deadline for creating the functions is sunday evening (next meeting)
+ 
