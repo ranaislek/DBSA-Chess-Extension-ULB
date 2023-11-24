@@ -22,13 +22,13 @@ PG_MODULE_MAGIC;
 // Structure to represent chess game
 typedef struct
 {
-    SCL_Record *game; 
+    SCL_Record game; 
 } ChessGame;
 
 // Structure to represent chess board
 typedef struct
 {
-    SCL_Board *board;
+    SCL_Board board;
 } ChessBoard;
 
 // FMGR macros for chess type 
@@ -48,13 +48,13 @@ Datum chessgame_out(PG_FUNCTION_ARGS);
 Datum chessboard_in(PG_FUNCTION_ARGS);
 Datum chessboard_out(PG_FUNCTION_ARGS);
 
-Datum getBoard(PG_FUNCTION_ARGS);
-Datum getFirstMoves(PG_FUNCTION_ARGS);
-Datum hasOpening(PG_FUNCTION_ARGS);
-Datum hasBoard(PG_FUNCTION_ARGS);
+// Datum getBoard(PG_FUNCTION_ARGS);
+// Datum getFirstMoves(PG_FUNCTION_ARGS);
+// Datum hasOpening(PG_FUNCTION_ARGS);
+// Datum hasBoard(PG_FUNCTION_ARGS);
 
 static char *chessgame_to_str(const ChessGame *c);
 static char *chessboard_to_str(const ChessBoard *c);
 static ChessGame *str_to_chessgame(const char *str);
-static ChessBoard *str_to_chessboard(const char *str);
+static ChessBoard *str_to_chessboard(char *str);
 #endif

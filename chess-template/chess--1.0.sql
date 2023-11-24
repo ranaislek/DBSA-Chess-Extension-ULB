@@ -80,42 +80,42 @@ CREATE TYPE chessboard (
 );
 
 /******************************************************************************
- * Constructor
+ * Constructor -- gereksiz
  ******************************************************************************/
 
-CREATE FUNCTION chessgame(text)
-    RETURNS chessgame
-    AS 'MODULE_PATHNAME', 'chessgame_constructor'
-    LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+-- CREATE FUNCTION chessgame(text)
+--     RETURNS chessgame
+--     AS 'MODULE_PATHNAME', 'chessgame_constructor'
+--     LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
-CREATE FUNCTION chessboard(text)
-    RETURNS chessboard
-    AS 'MODULE_PATHNAME', 'chessboard_constructor'
-    LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+-- CREATE FUNCTION chessboard(text)
+--     RETURNS chessboard
+--     AS 'MODULE_PATHNAME', 'chessboard_constructor'
+--     LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
 /******************************************************************************
  * Accessing values
  ******************************************************************************/
 
-CREATE FUNCTION getBoard(chessgame, integer)
-    RETURNS chessboard
-    AS 'MODULE_PATHNAME', 'getBoard'
-    LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+-- CREATE FUNCTION getBoard(chessgame, integer)
+--     RETURNS chessboard
+--     AS 'MODULE_PATHNAME', 'getBoard'
+--     LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
-CREATE FUNCTION getFirstMoves(chessgame, integer)
-    RETURNS chessgame
-    AS 'MODULE_PATHNAME', 'getFirstMoves'
-    LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+-- CREATE FUNCTION getFirstMoves(chessgame, integer)
+--     RETURNS chessgame
+--     AS 'MODULE_PATHNAME', 'getFirstMoves'
+--     LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
-CREATE FUNCTION hasOpening(chessgame, chessgame)
-    RETURNS bool
-    AS 'MODULE_PATHNAME', 'hasOpening'
-    LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+-- CREATE FUNCTION hasOpening(chessgame, chessgame)
+--     RETURNS bool
+--     AS 'MODULE_PATHNAME', 'hasOpening'
+--     LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
-CREATE FUNCTION hasBoard(chessgame, chessboard, integer)
-    RETURNS bool
-    AS 'MODULE_PATHNAME', 'hasBoard'
-    LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+-- CREATE FUNCTION hasBoard(chessgame, chessboard, integer)
+--     RETURNS bool
+--     AS 'MODULE_PATHNAME', 'hasBoard'
+--     LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
 /******************************************************************************
  * Indexing

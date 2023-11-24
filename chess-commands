@@ -16,8 +16,42 @@ ls
 make (make clean)
 sudo make install
 
+// Structure to represent chess game
+typedef struct
+{
+    SCL_Record *game; 
+} ChessGame;
+
+// Structure to represent chess board
+typedef struct
+{
+    SCL_Board *board;
+} ChessBoard;
 
 commands:
 sudo -i -u postgres
 psql chess
 chess=# CREATE EXTENSION chess;
+
+helper functions from smallchesslib.h:
+SCL_BOARD_STATE_SIZE 69 **
+void SCL_boardInit(SCL_Board board);
+
+void SCL_boardCopy(const SCL_Board boardFrom, SCL_Board boardTo);
+uint8_t SCL_boardToFEN(SCL_Board board, char *string); **
+SCL_boardFromFEN(SCL_Board board, const char *string); **
+SCL_boardDead(SCL_Board board);
+SCL_boardMate(SCL_Board board);
+SCL_boardUndoMove(SCL_Board board, SCL_MoveUndo moveUndo);
+SCL_boardGameOver(SCL_Board board);
+SCL_boardGetPosition(SCL_Board board);
+SCL_RECORD_MAX_SIZE (SCL_RECORD_MAX_LENGTH * 2)
+
+void SCL_recordInit(SCL_Record r);
+void SCL_recordCopy(SCL_Record recordFrom, SCL_Record recordTo);
+void SCL_recordFromPGN(SCL_Record r, const char *pgn); **
+uint16_t SCL_recordLength(const SCL_Record r);
+void SCL_recordApply(const SCL_Record r, SCL_Board b, uint16_t moves);
+uint8_t SCL_recordRemoveLast(SCL_Record r);
+void SCL_printPGN(SCL_Record r, SCL_PutCharFunction putCharFunc,
+  SCL_Board initialState); **

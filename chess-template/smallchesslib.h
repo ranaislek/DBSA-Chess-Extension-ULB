@@ -157,7 +157,7 @@ uint8_t SCL_squareSetGetRandom(const SCL_SquareSet squareSet,
   { command }\
   SCL_SQUARE_SET_ITERATE_END
  
-#define SCL_BOARD_STATE_SIZE 69
+#define SCL_BOARD_STATE_SIZE 69  // !!
 
 /**
   Represents chess board state as a string in this format:
