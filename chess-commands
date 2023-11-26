@@ -55,3 +55,17 @@ void SCL_recordApply(const SCL_Record r, SCL_Board b, uint16_t moves);
 uint8_t SCL_recordRemoveLast(SCL_Record r);
 void SCL_printPGN(SCL_Record r, SCL_PutCharFunction putCharFunc,
   SCL_Board initialState); **
+  
+  commands for testing:
+  open a bash terminal
+  -make clean
+  -make
+  -sudo make install
+  
+  open a new bash terminal:
+  -sudo -i -u -postgres
+  - CREATE DATABASE chess; or psql chess;
+  - CREATE EXTENSION chess;
+  - CREATE TABLE r(rana chessboard);
+  - insert into r values('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+  - select * from r;
