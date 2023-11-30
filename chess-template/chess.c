@@ -5,7 +5,8 @@
  *
  * chess
  *
- * Author: Rana Islek <rana.islek@ulb.be>
+ * Authors: 
+ * Rana Islek <rana.islek@ulb.be>
  */
 
 /*
@@ -68,23 +69,10 @@ PG_FUNCTION_INFO_V1(chessboard_out);
 Datum chessboard_out(PG_FUNCTION_ARGS) {
     ChessBoard *board = PG_GETARG_CHESSBOARD_P(0);
     char *result = palloc0(100);
-    SCL_boardToFEN(board->board, result);
+    SCL_boardToFEN(board->board, result); // print pgn . test file
     PG_FREE_IF_COPY(board, 0);
     PG_RETURN_CSTRING(result);
 }
-
-/*****************************************************************************/
-
-// PG_FUNCTION_INFO_V1(chess_cast_from_pgn);
-// Datum
-// chess_cast_from_pgn(PG_FUNCTION_ARGS)
-// {
-//   text *txt = PG_GETARG_TEXT_P(0);
-//   char *str = DatumGetCString(DirectFunctionCall1(textout,
-//                PointerGetDatum(txt)));
-//   PG_RETURN_INT64(complex_parse(&str));
-// }
-
 
 /*****************************************************************************/
 
@@ -111,17 +99,20 @@ getBoard(PG_FUNCTION_ARGS)
 // be called getOpening(...). Again the integer parameter is zero based.
 
 // narmina
-
-// PG_FUNCTION_INFO_V1(getFirstMoves);
-// Datum
-// getFirstMoves(PG_FUNCTION_ARGS)
-// {
-//   ChessGame *chessgame = PG_GETARG_CHESSGAME_P(0);
-//   int halfmove = PG_GETARG_INT32(1);
-//   char *result;
-//   result = psprintf("(%s,%d)", chessgame->game, chessgame->turn);
-//   PG_RETURN_CSTRING(result);
-// }
+PG_FUNCTION_INFO_V1(getFirstMoves);
+Datum getFirstMoves(PG_FUNCTION_ARGS){
+    ChessGame *game = PG_GETARG_CHESSGAME_P(0);
+    int num_half_moves=PG_GETARG_INT32(1);
+    char *state = palloc0(sizeof(char) * (num_half_moves + 1)); // Allocate memory for the state
+    SCL_SquareSet moves;
+    for(int i=0; i<num_half_moves; i++){
+        SCL_boardGetMoves(game,i,&moves);
+        state[i] = moves;
+    }
+    ChessGame *result; // no need for string if u have chessgames
+    result=str_to_chessgame(state);
+    PG_RETURN_CHESSGAME_P(result);
+}
 
 /*****************************************************************************/
 // - hasOpening(chessgame, chessgame) -> bool: Returns true if the first
@@ -132,16 +123,25 @@ getBoard(PG_FUNCTION_ARGS)
 
 // herma
 
-// PG_FUNCTION_INFO_V1(hasOpening);
-// Datum
-// hasOpening(PG_FUNCTION_ARGS)
-// {
-//   ChessGame *chessgame = PG_GETARG_CHESSGAME_P(0);
-//   ChessGame *chessgame2 = PG_GETARG_CHESSGAME_P(1);
-//   bool result;
-//   result = true;
-//   PG_RETURN_BOOL(result);
-// }
+PG_FUNCTION_INFO_V1(hasOpening);
+Datum hasOpening(PG_FUNCTION_ARGS) {
+    if (SRF_IS_FIRSTCALL()) {
+        // Retrieve pointers to ChessGame structures from the function arguments
+        ChessGame *game1 = (ChessGame *)PG_GETARG_POINTER(0);
+        ChessGame *game2 = (ChessGame *)PG_GETARG_POINTER(1);
+    
+        // Get the boards from game1 and game2
+        ChessBoard *board1 = SCL_getBoard(game1);
+        ChessBoard *board2 = SCL_getBoard(game2);
+
+        // Check if the boards are different
+        bool boards_differ = SCL_boardsDiffer(board1, board2);
+// we need loop
+        // Return the comparison result
+        PG_RETURN_BOOL(boards_differ);
+    }
+    PG_RETURN_NULL();
+}
 
 /*****************************************************************************/
 
@@ -151,18 +151,43 @@ getBoard(PG_FUNCTION_ARGS)
 // the move count, castling right, en passant pieces, ...
 
 // shofi
+//SCL_recordGetMove + SCL_recordAdd 
+int hasboardchess(const ChessGame *chess_game, const ChessBoard *chess_board, const int nHalfMoves) {
+  uint32_t result;
+  uint32_t toFEN;
 
-// PG_FUNCTION_INFO_V1(hasBoard);
-// Datum
-// hasBoard(PG_FUNCTION_ARGS)
-// {
-//   ChessGame *chessgame = PG_GETARG_CHESSGAME_P(0);
-//   ChessBoard *chessboard = PG_GETARG_CHESSGAME_P(1);
-//   int halfmove = PG_GETARG_INT32(2);
-//   bool result;
-//   result = true;
-//   PG_RETURN_BOOL(result);
-// }
+  // Initialize the smallchesslib board
+  SCL_Board board = SCL_BOARD_START_STATE;
+  SCL_boardInit(board);
+
+  // convert board into FEN (chess chess_game)
+  SCL_boardToFEN(board, chess_board->board);
+  toFEN = SCL_boardHash32(board);
+// may not need hash, not right functions
+  SCL_Board board2 = SCL_BOARD_START_STATE;
+  SCL_boardInit(board2);
+
+  // Apply moves from the chesschess_game to the smallchesslib board
+  for (int i = 0; i < nHalfMoves; ++i) {
+    SCL_boardFromFEN(board2, chess_game->game);
+    result = SCL_boardHash32(board2);
+  }
+
+  // Compare the FEN strings
+  return strcmp(result, toFEN);
+}
+
+
+// Function to check if the chessgame contains the given board state in its first N half-moves
+
+PG_FUNCTION_INFO_V1(hasboard); // correct
+Datum hasboard(PG_FUNCTION_ARGS) {
+  ChessGame *game = (ChessGame *)PG_GETARG_POINTER(0);
+  ChessBoard *board = (ChessBoard *)PG_GETARG_POINTER(1);
+  int nHalfMoves = PG_GETARG_INT32(2);
+
+  PG_RETURN_BOOL(hasboardchess(game, board, nHalfMoves));
+}
 
 /*****************************************************************************/
 
