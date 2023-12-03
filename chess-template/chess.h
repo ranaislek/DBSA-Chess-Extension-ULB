@@ -49,12 +49,12 @@ Datum chessboard_in(PG_FUNCTION_ARGS);
 Datum chessboard_out(PG_FUNCTION_ARGS);
 
 // Datum getBoard(PG_FUNCTION_ARGS);
-// Datum getFirstMoves(PG_FUNCTION_ARGS);
-// Datum hasOpening(PG_FUNCTION_ARGS);
-// Datum hasBoard(PG_FUNCTION_ARGS);
+Datum getFirstMoves(PG_FUNCTION_ARGS);
+Datum hasOpening(PG_FUNCTION_ARGS);
+Datum hasBoard(PG_FUNCTION_ARGS);
 
-static char *chessgame_to_str(const ChessGame *c);
-static char *chessboard_to_str(const ChessBoard *c);
+// static char *chessgame_to_str(const ChessGame *c);
+// static char *chessboard_to_str(const ChessBoard *c);
 static ChessGame *str_to_chessgame(const char *str);
 static ChessBoard *str_to_chessboard(char *str);
 #endif

@@ -69,3 +69,35 @@ void SCL_printPGN(SCL_Record r, SCL_PutCharFunction putCharFunc,
   - CREATE TABLE r(rana chessboard);
   - insert into r values('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
   - select * from r;
+  
+  
+  
+  
+  commands to test:
+  
+  
+  
+  CREATE TABLE favoriteGames (
+    game VARCHAR(1000) 
+);
+  
+  CREATE TABLE games (
+    game VARCHAR(1000) 
+);
+
+INSERT INTO games (game) VALUES
+('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+
+INSERT INTO favoriteGames (game) VALUES
+('1. e4 e5 2. Nf3 Nf6 3. d3');
+
+SELECT COUNT(*)
+FROM games
+WHERE game = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+
+SELECT COUNT(*)
+FROM games
+WHERE game LIKE '1. e4 e5 2. Nf3 Nf6 3. d3%';
+  
+  
+  
