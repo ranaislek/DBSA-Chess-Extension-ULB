@@ -19,13 +19,15 @@
 
 PG_MODULE_MAGIC;
 
-// Structure to represent chess game
+//SAN and FEN notation for chess-game and chess-board respectively.
+
+// Structure to represent chess game -SAN/PGN
 typedef struct
 {
     SCL_Record game; 
 } ChessGame;
 
-// Structure to represent chess board
+// Structure to represent chess board -FEN
 typedef struct
 {
     SCL_Board board;

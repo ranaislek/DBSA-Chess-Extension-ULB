@@ -31,7 +31,8 @@ static ChessBoard *str_to_chessboard(char *str) {
 
 //Convert string representation to ChessGame - SAN
 static ChessGame *str_to_chessgame(const char *str) {
-    ChessGame *result = (ChessGame *)palloc(sizeof(ChessGame));
+    //ChessGame *result = (ChessGame *)palloc(sizeof(ChessGame));
+    ChessGame *result = palloc0(sizeof(ChessGame));
     //SCL_boardToFEN(result->game, str);
     SCL_recordFromPGN(result->game, str);
     return result;
@@ -63,8 +64,12 @@ Datum chessboard_in(PG_FUNCTION_ARGS) {
 PG_FUNCTION_INFO_V1(chessgame_out);
 Datum chessgame_out(PG_FUNCTION_ARGS) {
     ChessGame *game = PG_GETARG_CHESSGAME_P(0);
-    char *result = palloc0(100);
-    SCL_boardToFEN(game->game, result);
+    char *result = palloc0(sizeof(char)*SCL_RECORD_MAX_LENGTH);
+    //result = "rana";
+    // //SCL_recordFromPGN(game->game)
+    // SCL_boardToFEN(game->game, result); // not board to fen but game to board 
+    //                                     // game to pgn
+    SCL_printPGN(game->game, result, 0);
     PG_FREE_IF_COPY(game, 0);
     PG_RETURN_CSTRING(result);
 }
@@ -73,10 +78,8 @@ Datum chessgame_out(PG_FUNCTION_ARGS) {
 PG_FUNCTION_INFO_V1(chessboard_out);
 Datum chessboard_out(PG_FUNCTION_ARGS) {
     ChessBoard *board = PG_GETARG_CHESSBOARD_P(0);
-    char *result = palloc0(100);
-    // SCL_boardToFEN(board->board, result); // print pgn . test file
-    // print pgn . test file
-    SCL_printPGN(board->board, result, 0);
+    char *result = palloc0(sizeof(char)*SCL_FEN_MAX_LENGTH);
+    SCL_boardToFEN(board->board, result);
     PG_FREE_IF_COPY(board, 0);
     PG_RETURN_CSTRING(result);
 }
@@ -89,6 +92,7 @@ Datum chessboard_out(PG_FUNCTION_ARGS) {
 // moves since the beginning of the game. A 0 value of this parameter
 // means the initial board state, i.e.,(rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1).
 
+//rana
 PG_FUNCTION_INFO_V1(getBoard);
 Datum
 getBoard(PG_FUNCTION_ARGS)
@@ -102,24 +106,17 @@ getBoard(PG_FUNCTION_ARGS)
        return fen
     */
 
-
     //smallchesslib.h get board position
-    ChessGame *chessgame = PG_GETARG_CHESSBOARD_P(0);
-    SCL_boardGetPosition(chessgame->game);
-    PG_RETURN_CHESSGAME_P(chessgame);
+    ChessGame *chessgame = PG_GETARG_CHESSGAME_P(0);
+    ChessBoard *chessboard = palloc0(sizeof(ChessBoard));
+    int half_moves = PG_GETARG_INT32(1);
+    
+    // SCL_recordFromPGN(chessgame->game, chessboard->board);
+    SCL_recordApply(chessgame->game, chessboard, half_moves);
+    PG_FREE_IF_COPY(chessgame,0);
+    PG_RETURN_CHESSBOARD_P(chessboard);
 
-    // ChessGame *chessgame = PG_GETARG_CHESSGAME_P(0);
-    // int half_moves = PG_GETARG_INT32(1);
 
-    // // Calculate the full moves from half moves
-    // int full_moves = half_moves / 2;
-
-    // // Apply the specified number of half-moves
-    // for (int i = 0; i < full_moves * 2; i++) {
-    //     SCL_recordApplyMove(chessgame->game, i); //SCL_recordApply  use printf to check log in potgres folder
-    // }
-
-    // PG_RETURN_CHESSGAME_P(chessgame);
 }
 
 /*****************************************************************************/

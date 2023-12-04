@@ -10,7 +10,7 @@
   license: CC0 1.0 (public domain)
            found at https://creativecommons.org/publicdomain/zero/1.0/
            + additional waiver of all IP
-  version: 0.8d
+  version: 0.8
 
   Default notation format for this library is a coordinate one, i.e.
   
@@ -157,7 +157,7 @@ uint8_t SCL_squareSetGetRandom(const SCL_SquareSet squareSet,
   { command }\
   SCL_SQUARE_SET_ITERATE_END
  
-#define SCL_BOARD_STATE_SIZE 69  // !!
+#define SCL_BOARD_STATE_SIZE 69
 
 /**
   Represents chess board state as a string in this format:
@@ -322,14 +322,14 @@ void SCL_boardRandomMove(SCL_Board board, SCL_RandomFunction randFunc,
   0 (this is included in SCL_FEN_MAX_LENGTH). The number of bytes written
   (including the terminating 0) is returned.
 */
-uint8_t SCL_boardToFEN(SCL_Board board, char *string); //!!
+uint8_t SCL_boardToFEN(SCL_Board board, char *string);
 
 /**
   Loads a board from FEN (Forsyth–Edwards Notation) string. Returns 1 on
   success, 0 otherwise. XFEN isn't supported fully but a start position in
   chess960 can be loaded with this function. 
 */
-uint8_t SCL_boardFromFEN(SCL_Board board, const char *string); //!!
+uint8_t SCL_boardFromFEN(SCL_Board board, const char *string);
 
 /**
   Returns an approximate/heuristic board rating as a number, 0 meaning equal
@@ -585,7 +585,7 @@ uint8_t SCL_gameGetRepetiotionMove(SCL_Game *game,
   adhere to the PGN input format, but should accept most sanely written PGN
   strings.
 */
-void SCL_recordFromPGN(SCL_Record r, const char *pgn); //!!
+void SCL_recordFromPGN(SCL_Record r, const char *pgn);
 
 uint16_t SCL_recordLength(const SCL_Record r);
 
@@ -679,8 +679,8 @@ void SCL_printBoardSimple(
   uint8_t format);
 
 void SCL_printSquareUTF8(uint8_t square, SCL_PutCharFunction putCharFunc);
-void SCL_printPGN(SCL_Record r, SCL_PutCharFunction putCharFunc,
-  SCL_Board initialState); //!!
+void SCL_printPGN(SCL_Record r, char* c,
+  SCL_Board initialState);
 
 /**
   Reads a move from string (the notation format is described at the top of this
@@ -3393,9 +3393,11 @@ uint8_t SCL_boardMoveResetsCount(SCL_Board board,
     board[squareTo] != '.';
 }
 
-void SCL_printPGN(SCL_Record r, SCL_PutCharFunction putCharFunc,
+void SCL_printPGN(SCL_Record r, char *outputString,
   SCL_Board initialState)
 {
+
+  #define putCharFunc(x) (*outputString++ = x)
   if (SCL_recordLength(r) == 0)
     return;
 
@@ -3528,6 +3530,7 @@ void SCL_printPGN(SCL_Record r, SCL_PutCharFunction putCharFunc,
       
     putCharFunc(' ');
   }
+  #undef putCharFunc
 }
 
 void SCL_recordCopy(SCL_Record recordFrom, SCL_Record recordTo)

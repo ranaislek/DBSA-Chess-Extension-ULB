@@ -100,4 +100,4 @@ FROM games
 WHERE game LIKE '1. e4 e5 2. Nf3 Nf6 3. d3%';
   
   
-  
+  the log files should be in the /var/lib/postgresql/15/main/log/ directory.
