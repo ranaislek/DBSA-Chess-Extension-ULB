@@ -65,10 +65,6 @@ PG_FUNCTION_INFO_V1(chessgame_out);
 Datum chessgame_out(PG_FUNCTION_ARGS) {
     ChessGame *game = PG_GETARG_CHESSGAME_P(0);
     char *result = palloc0(sizeof(char)*SCL_RECORD_MAX_LENGTH);
-    //result = "rana";
-    // //SCL_recordFromPGN(game->game)
-    // SCL_boardToFEN(game->game, result); // not board to fen but game to board 
-    //                                     // game to pgn
     SCL_printPGN(game->game, result, 0);
     PG_FREE_IF_COPY(game, 0);
     PG_RETURN_CSTRING(result);
@@ -110,13 +106,9 @@ getBoard(PG_FUNCTION_ARGS)
     ChessGame *chessgame = PG_GETARG_CHESSGAME_P(0);
     ChessBoard *chessboard = palloc0(sizeof(ChessBoard));
     int half_moves = PG_GETARG_INT32(1);
-    
-    // SCL_recordFromPGN(chessgame->game, chessboard->board);
     SCL_recordApply(chessgame->game, chessboard, half_moves);
     PG_FREE_IF_COPY(chessgame,0);
     PG_RETURN_CHESSBOARD_P(chessboard);
-
-
 }
 
 /*****************************************************************************/
@@ -133,18 +125,15 @@ to-do:
 */
 // narmina
 // PG_FUNCTION_INFO_V1(getFirstMoves);
-// Datum getFirstMoves(PG_FUNCTION_ARGS){
-//     ChessGame *game = PG_GETARG_CHESSGAME_P(0);
-//     int num_half_moves=PG_GETARG_INT32(1);
-//     char *state = palloc0(sizeof(char) * (num_half_moves + 1)); // Allocate memory for the state
-//     SCL_SquareSet moves;
-//     for(int i = 0; i < num_half_moves; i++){
-//         SCL_boardGetMoves(game, i, &moves);
-//         state[i] = moves[0]; // Assuming moves is an array and you want the first character
-//     }   
-//     ChessGame *result; // no need for string if u have chessgames
-//     result=str_to_chessgame(state);
-//     PG_RETURN_CHESSGAME_P(result);
+// Datum 
+// getFirstMoves(PG_FUNCTION_ARGS)
+// {
+//     ChessGame *chessgame = PG_GETARG_CHESSGAME_P(0);
+//     ChessBoard *chessboard = palloc0(sizeof(ChessBoard));
+//     int half_moves = PG_GETARG_INT32(1);
+//     SCL_recordApply(chessgame->game, chessboard, half_moves);
+//     PG_FREE_IF_COPY(chessgame,0);
+//     PG_RETURN_CHESSGAME_P(chessgame);
 // }
 
 /*****************************************************************************/
@@ -198,44 +187,22 @@ to-do:
     use getboard and apply the requested amount of moves and check if the state of the bard gives the right fen
 */
 // shofi
-//SCL_recordGetMove + SCL_recordAdd 
-// int hasboardchess(const ChessGame *chess_game, const ChessBoard *chess_board, const int nHalfMoves) {
-//   uint32_t result;
-//   uint32_t toFEN;
+PG_FUNCTION_INFO_V1(hasBoard);
+Datum 
+hasBoard(PG_FUNCTION_ARGS) 
+{
+    ChessGame *chessgame = PG_GETARG_CHESSGAME_P(0);
+    ChessBoard *chessboard = palloc0(sizeof(ChessBoard));
+    ChessBoard *chessboard2 = PG_GETARG_CHESSBOARD_P(1);
+    int half_moves = PG_GETARG_INT32(2);
+    
+    SCL_recordApply(chessgame->game, chessboard, half_moves);
+    PG_FREE_IF_COPY(chessgame,0);
 
-//   // Initialize the smallchesslib board
-//   SCL_Board board = SCL_BOARD_START_STATE;
-//   SCL_boardInit(board);
+    uint32_t hash = SCL_boardHash32(chessboard);
+    uint32_t hash2 = SCL_boardHash32(chessboard2);
 
-//   // convert board into FEN (chess chess_game)
-//   SCL_boardToFEN(board, chess_board->board);
-//   toFEN = SCL_boardHash32(board);
-
-//   SCL_Board board2 = SCL_BOARD_START_STATE;
-//   SCL_boardInit(board2);
-
-//   // Apply moves from the chesschess_game to the smallchesslib board
-//   for (int i = 0; i < nHalfMoves; ++i) {
-//     SCL_boardFromFEN(board2, chess_game->game);
-//     result = SCL_boardHash32(board2);
-//   }
-
-//   // Compare the FEN strings
-//   //return strcmp(result, toFEN);
-//   return (result == toFEN) ? 0 : 1;
-// }
-
-
-// // Function to check if the chessgame contains the given board state in its first N half-moves
-
-// PG_FUNCTION_INFO_V1(hasboard); // correct
-// Datum hasboard(PG_FUNCTION_ARGS) {
-//   ChessGame *game = (ChessGame *)PG_GETARG_POINTER(0);
-//   ChessBoard *board = (ChessBoard *)PG_GETARG_POINTER(1);
-//   int nHalfMoves = PG_GETARG_INT32(2);
-
-//   PG_RETURN_BOOL(hasboardchess(game, board, nHalfMoves));
-// }
-
+    PG_RETURN_BOOL(hash == hash2);
+}
 /*****************************************************************************/
 
