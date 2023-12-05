@@ -93,16 +93,7 @@ PG_FUNCTION_INFO_V1(getBoard);
 Datum
 getBoard(PG_FUNCTION_ARGS)
 {
-    /*
-    to-do:
-       get pgn string and put it in the record
-       use recordapply (record, board, halfmove)
-       get pgn string to the number of half moves, and get the state of the board
-       use boardtofen to convert the board state to fen
-       return fen
-    */
-
-    //smallchesslib.h get board position
+      //smallchesslib.h get board position
     ChessGame *chessgame = PG_GETARG_CHESSGAME_P(0);
     ChessBoard *chessboard = palloc0(sizeof(ChessBoard));
     int half_moves = PG_GETARG_INT32(1);
@@ -116,25 +107,60 @@ getBoard(PG_FUNCTION_ARGS)
 // chessgame truncated to its first N half-moves. This function may also
 // be called getOpening(...). Again the integer parameter is zero based.
 
-/*
-to-do:
-    use the library called strtok to split the string
-    then you will have the number of tokens
-    then trim the string to the number of half moves
-    then return the string 
-*/
 // narmina
-// PG_FUNCTION_INFO_V1(getFirstMoves);
-// Datum 
-// getFirstMoves(PG_FUNCTION_ARGS)
-// {
-//     ChessGame *chessgame = PG_GETARG_CHESSGAME_P(0);
-//     ChessBoard *chessboard = palloc0(sizeof(ChessBoard));
-//     int half_moves = PG_GETARG_INT32(1);
-//     SCL_recordApply(chessgame->game, chessboard, half_moves);
-//     PG_FREE_IF_COPY(chessgame,0);
-//     PG_RETURN_CHESSGAME_P(chessgame);
-// }
+PG_FUNCTION_INFO_V1(getFirstMoves);
+Datum 
+getFirstMoves(PG_FUNCTION_ARGS)
+{
+    // have the input chessgame and int half_moves
+    ChessGame *chessgame = PG_GETARG_CHESSGAME_P(0);
+    int half_moves = PG_GETARG_INT32(1);
+    // get the string from the chessgame
+    char *str = palloc0(sizeof(char) * SCL_RECORD_MAX_LENGTH);
+    SCL_printPGN(chessgame->game, str, 0);
+
+    // Calculate the number of full moves
+    int full_moves = (int)ceil(half_moves / 2.0);
+    bool even = half_moves % 2 == 0;
+
+    // Build the search string
+    StringInfoData search_str;
+    initStringInfo(&search_str);
+    appendStringInfo(&search_str, "%d.", full_moves);
+
+    // Find the starting position
+    int counter = (int)strstr(str, search_str.data) - (int)str;
+    bool found = true;
+    
+    // Set the threshold
+    int threshold = even ? 3 : 2;
+    int nb_spaces = 0;
+
+    // Iterate until the specified threshold is reached
+    while (found) {
+        counter++;
+        if (str[counter] == ' ') {
+            nb_spaces++;
+        }
+        if (nb_spaces == threshold) {
+            found = false;
+        }
+    }
+
+    // Return the truncated string
+    char *result = palloc0(counter + 1);
+    strncpy(result, str, counter);
+    result[counter] = '\0';
+
+    //convert str to chessgame
+    ChessGame *result_chessgame = str_to_chessgame(result);
+
+    // Cleanup and return the result
+    PG_FREE_IF_COPY(chessgame, 0);
+    pfree(str);
+    pfree(result);
+    PG_RETURN_CHESSGAME_P(result_chessgame);
+}
 
 /*****************************************************************************/
 // - hasOpening(chessgame, chessgame) -> bool: Returns true if the first
