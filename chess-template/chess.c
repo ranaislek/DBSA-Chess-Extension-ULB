@@ -19,6 +19,7 @@ use SAN and FEN notation for chess-game and chess-board respectively.
 #include "chess.h"
 #include "smallchesslib.h"
 #include "postgres.h"
+#include "lib/stringinfo.h"
 
 //SAN and FEN notation for chess-game and chess-board respectively.
 
