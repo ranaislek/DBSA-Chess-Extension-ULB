@@ -1,0 +1,58 @@
+-- INFOH 417 ~ DBSA
+-- TESTING QUERIES FOR CHESS EXTENSION
+DROP TABLE IF EXISTS test_games;
+DROP TABLE IF EXISTS games;
+DROP TABLE IF EXISTS favoriteGames;
+DROP EXTENSION IF EXISTS chess;
+CREATE EXTENSION chess;
+
+CREATE TABLE games (id serial primary key, game chessgame);
+INSERT INTO games(game) VALUES ('1. Nf3 Nf6 2. c4 g6 3. Nc3 Bg7 4. d4 O-O 5. Bf4 d5 6. Qb3 dxc4 7.
+Qxc4 c6 8. e4 Nbd7 9. Rd1 Nb6 10. Qc5 Bg4 11. Bg5 Na4 12. Qa3
+Nxc3 13. bxc3 Nxe4 14. Bxe7 Qb6 15. Bc4 Nxc3 16. Bc5 Rfe8+ 17.
+Kf1 Be6 18. Bxb6 Bxc4+ 19. Kg1 Ne2+ 20. Kf1 Nxd4+ 21. Kg1 Ne2+
+22. Kf1 Nc3+ 23. Kg1 axb6 24. Qb4 Ra4 25. Qxb6 Nxd1 26. h3 Rxa2
+27. Kh2 Nxf2 28. Re1 Rxe1 29. Qd8+ Bf8 30. Nxe1 Bd5 31. Nf3 Ne4
+32. Qb8 b5 33. h4 h5 34. Ne5 Kg7 35. Kg1 Bc5+ 36. Kf1 Ng3+ 37.
+Ke1 Bb4+ 38. Kd1 Bb3+ 39. Kc1 Ne2+ 40. Kb1 Nc3+ 41. Kc1 Rc2#');
+INSERT INTO games(game) VALUES ('1. e4 d5 2. exd5 Qxd5 3. Nc3 Qd8 4. Bc4 Nf6 5. Nf3 Bg4 6. h3 Bxf3
+7. Qxf3 e6 8. Qxb7 Nbd7 9. Nb5 Rc8 10. Nxa7 Nb6 11. Nxc8 Nxc8
+12. d4 Nd6 13. Bb5+ Nxb5 14. Qxb5+ Nd7 15. d5 exd5 16. Be3 Bd6
+17. Rd1 Qf6 18. Rxd5 Qg6 19. Bf4 Bxf4 20. Qxd7+ Kf8 21. Qd8#');
+
+CREATE TABLE favoriteGames (id serial primary key, game chessgame);
+INSERT INTO favoriteGames (game) VALUES ('1. e4 e5 2. Nf3 Nf6 3. d3');
+INSERT INTO favoriteGames (game) VALUES ('1. e4 d5 2. exd5 Qxd5 3. Nc3');
+
+SELECT getBoard(game,0) FROM games;
+SELECT getBoard(game,3) FROM games;
+SELECT getBoard(game,100) FROM games;  -- corner case: more than existing half_move
+
+SELECT getFirstMoves(game,3) FROM games;
+
+SELECT hasOpening(game,'1. e4 e7') from games;
+SELECT hasOpening(game,'1. e4 d5 2. exd5') from games;
+
+select hasBoard(game, 'rnbqkb1r/pppppppp/5n2/8/2P5/5N2/PP1PPPPP/RNBQKB1R b KQkq c3 0 2', 3) from games;
+-- functions from project document:
+
+-- How many games had the given board state at any time during the game:
+SELECT count(*)
+FROM games
+WHERE hasboard(game, 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 10);
+SELECT count(*)
+FROM games
+WHERE hasboard(game, 'rnbqkb1r/pppppppp/5n2/8/2P5/5N2/PP1PPPPP/RNBQKB1R b KQkq c3 0 2', 3);
+
+-- How many games started with the given sequence of moves:
+SELECT count(*)
+FROM games
+WHERE hasopening(game, '1. e4');
+
+-- Which games have the same 10 first half-moves as any of the games stored in table favoriteGames:
+SELECT g.game
+FROM games g, favoriteGames f
+WHERE hasopening(g.game, getFirstMoves(f.game, 1));
+SELECT g.game
+FROM games g, favoriteGames f
+WHERE hasopening(g.game, getFirstMoves(f.game, 2));

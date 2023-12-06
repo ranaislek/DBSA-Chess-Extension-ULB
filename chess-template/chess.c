@@ -31,9 +31,7 @@ static ChessBoard *str_to_chessboard(char *str) {
 
 //Convert string representation to ChessGame - SAN
 static ChessGame *str_to_chessgame(const char *str) {
-    //ChessGame *result = (ChessGame *)palloc(sizeof(ChessGame));
     ChessGame *result = palloc0(sizeof(ChessGame));
-    //SCL_boardToFEN(result->game, str);
     SCL_recordFromPGN(result->game, str);
     return result;
 }
@@ -92,7 +90,6 @@ PG_FUNCTION_INFO_V1(getBoard);
 Datum
 getBoard(PG_FUNCTION_ARGS)
 {
-      //smallchesslib.h get board position
     ChessGame *chessgame = PG_GETARG_CHESSGAME_P(0);
     ChessBoard *chessboard = palloc0(sizeof(ChessBoard));
     int half_moves = PG_GETARG_INT32(1);
@@ -114,6 +111,7 @@ getFirstMoves(PG_FUNCTION_ARGS)
     // have the input chessgame and int half_moves
     ChessGame *chessgame = PG_GETARG_CHESSGAME_P(0);
     int half_moves = PG_GETARG_INT32(1);
+    
     // get the string from the chessgame
     char *str = palloc0(sizeof(char) * SCL_RECORD_MAX_LENGTH);
     SCL_printPGN(chessgame->game, str, 0);
