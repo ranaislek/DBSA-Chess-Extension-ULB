@@ -256,4 +256,105 @@ hasBoard(PG_FUNCTION_ARGS)
     PG_RETURN_BOOL(hash == hash2);
 }
 /*****************************************************************************/
+static int
+chess_cmp_internal(ChessGame *game1, ChessGame *game2)
+{
+    //convert chessgame to str
+    char *str1 = palloc0(sizeof(char)*SCL_RECORD_MAX_LENGTH);
+    SCL_printPGN(game1->game, str1, 0);
 
+    char *str2 = palloc0(sizeof(char)*SCL_RECORD_MAX_LENGTH);
+    SCL_printPGN(game2->game, str2, 0);
+
+    int result = strcmp(str1, str2);
+
+    if (str1 < str2)
+        return -1;
+    if (str1 > str2)
+        return 1;
+    return 0;
+}
+
+PG_FUNCTION_INFO_V1(chess_eq);
+Datum
+chess_eq(PG_FUNCTION_ARGS)
+{
+  ChessGame *c = PG_GETARG_CHESSGAME_P(0);
+  ChessGame *d = PG_GETARG_CHESSGAME_P(1);
+  bool result = chess_cmp_internal(c, d) == 0;
+  PG_FREE_IF_COPY(c, 0);
+  PG_FREE_IF_COPY(d, 1);
+  PG_RETURN_BOOL(result);
+}
+
+PG_FUNCTION_INFO_V1(chess_ne);
+Datum
+chess_ne(PG_FUNCTION_ARGS)
+{
+  ChessGame *c = PG_GETARG_CHESSGAME_P(0);
+  ChessGame *d = PG_GETARG_CHESSGAME_P(1);
+  bool result = chess_cmp_internal(c, d) != 0;
+  PG_FREE_IF_COPY(c, 0);
+  PG_FREE_IF_COPY(d, 1);
+  PG_RETURN_BOOL(result);
+}
+
+PG_FUNCTION_INFO_V1(chess_lt);
+Datum
+chess_lt(PG_FUNCTION_ARGS)
+{
+  ChessGame *c = PG_GETARG_CHESSGAME_P(0);
+  ChessGame *d = PG_GETARG_CHESSGAME_P(1);
+  bool result = chess_cmp_internal(c, d) < 0;
+  PG_FREE_IF_COPY(c, 0);
+  PG_FREE_IF_COPY(d, 1);
+  PG_RETURN_BOOL(result);
+}
+
+PG_FUNCTION_INFO_V1(chess_le);
+Datum
+chess_le(PG_FUNCTION_ARGS)
+{
+  ChessGame *c = PG_GETARG_CHESSGAME_P(0);
+  ChessGame *d = PG_GETARG_CHESSGAME_P(1);
+  bool result = chess_cmp_internal(c, d) <= 0;
+  PG_FREE_IF_COPY(c, 0);
+  PG_FREE_IF_COPY(d, 1);
+  PG_RETURN_BOOL(result);
+}
+
+PG_FUNCTION_INFO_V1(chess_gt);
+Datum
+chess_gt(PG_FUNCTION_ARGS)
+{
+  ChessGame *c = PG_GETARG_CHESSGAME_P(0);
+  ChessGame *d = PG_GETARG_CHESSGAME_P(1);
+  bool result = chess_cmp_internal(c, d) > 0;
+  PG_FREE_IF_COPY(c, 0);
+  PG_FREE_IF_COPY(d, 1);
+  PG_RETURN_BOOL(result);
+}
+
+PG_FUNCTION_INFO_V1(chess_ge);
+Datum
+chess_ge(PG_FUNCTION_ARGS)
+{
+  ChessGame *c = PG_GETARG_CHESSGAME_P(0);
+  ChessGame *d = PG_GETARG_CHESSGAME_P(1);
+  bool result = chess_cmp_internal(c, d) >= 0;
+  PG_FREE_IF_COPY(c, 0);
+  PG_FREE_IF_COPY(d, 1);
+  PG_RETURN_BOOL(result);
+}
+
+PG_FUNCTION_INFO_V1(chess_cmp);
+Datum
+chess_cmp(PG_FUNCTION_ARGS)
+{
+  ChessGame *c = PG_GETARG_CHESSGAME_P(0);
+  ChessGame *d = PG_GETARG_CHESSGAME_P(1);
+  int result = chess_cmp_internal(c, d);
+  PG_FREE_IF_COPY(c, 0);
+  PG_FREE_IF_COPY(d, 1);
+  PG_RETURN_INT32(result);
+}
