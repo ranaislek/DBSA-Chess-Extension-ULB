@@ -81,14 +81,13 @@ Datum chessboard_out(PG_FUNCTION_ARGS) {
 }
 
 /*****************************************************************************/
-
+// 1)
 // - getBoard(chessgame, integer) -> chessboard: Return the board state
 // at a given half-move (A full move is counted only when both players
 // have played). The integer parameter indicates the count of half
 // moves since the beginning of the game. A 0 value of this parameter
 // means the initial board state, i.e.,(rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1).
 
-//rana
 PG_FUNCTION_INFO_V1(getBoard);
 Datum
 getBoard(PG_FUNCTION_ARGS)
@@ -103,11 +102,11 @@ getBoard(PG_FUNCTION_ARGS)
 }
 
 /*****************************************************************************/
+// 2)
 // - getFirstMoves(chessgame, integer) -> chessgame: Returns the
 // chessgame truncated to its first N half-moves. This function may also
 // be called getOpening(...). Again the integer parameter is zero based.
 
-// narmina
 PG_FUNCTION_INFO_V1(getFirstMoves);
 Datum 
 getFirstMoves(PG_FUNCTION_ARGS)
@@ -163,56 +162,83 @@ getFirstMoves(PG_FUNCTION_ARGS)
 }
 
 /*****************************************************************************/
+// 3)
 // - hasOpening(chessgame, chessgame) -> bool: Returns true if the first
 // chess game starts with the exact same set of moves as the second
 // chess game. The second parameter should not be a full game, but
 // should only contain the opening moves that we want to check for,
 // which can be of any length, i.e., m half-moves.
 
-// herma
+PG_FUNCTION_INFO_V1(hasOpening);
+Datum 
+hasOpening(PG_FUNCTION_ARGS) {
+    ChessGame *chessgame = PG_GETARG_CHESSGAME_P(0);
+    ChessGame *chessgame2 = PG_GETARG_CHESSGAME_P(1);
 
-// PG_FUNCTION_INFO_V1(hasOpening);
+    int half_moves = SCL_recordLength(chessgame2->game);
+    elog(NOTICE, "half_moves: %d", half_moves);
 
-/*
-to-do:
-    1- SCL_recordFromPGN to convert the string to record
-       use recordLength to get the number of half moves and compare
+    char *str = palloc0(sizeof(char) * SCL_RECORD_MAX_LENGTH);
+    SCL_printPGN(chessgame->game, str, 0);
 
-    2-use getfirstmoves to get the first n half moves
-    then compare the two strings
-*/
+    char *str2 = palloc0(sizeof(char) * SCL_RECORD_MAX_LENGTH);
+    SCL_printPGN(chessgame2->game, str2, 0);
 
-// Datum hasOpening(PG_FUNCTION_ARGS) {
-//     // Retrieve pointers to ChessGame structures from the function arguments
-//     ChessGame *game1 = (ChessGame *)PG_GETARG_POINTER(0);
-//     ChessGame *game2 = (ChessGame *)PG_GETARG_POINTER(1);
+    elog(NOTICE, "str: %s", str);
+    elog(NOTICE, "str2: %s", str2);
 
-//     // Extract the opening moves from the second chess game
-//     SCL_Board board1 = game1->board;
-//     SCL_Board board2 = game2->board;
+    // Get first n half moves from the first chessgame
+    int full_moves = (int)ceil(half_moves / 2.0);
+    bool even = half_moves % 2 == 0;
 
-//     // Estimate the phase of the opening for the specified moves
-//     SCL_boardEstimatePhase boardEstimatePhase = SCL_boardEstimatePhase(board1, board2);
+    StringInfoData search_str;
+    initStringInfo(&search_str);
+    appendStringInfo(&search_str, "%d.", full_moves);
 
-//     // Check if the phase estimation indicates an opening
-//     bool isOpening = (phaseEstimation == SCL_PHASE_OPENING);
+    // Find the starting position
+    int counter = (int)strstr(str, search_str.data) - (int)str;
+    bool found = true;
 
-//     // Return the result indicating if the first chess game matches the specified opening moves
-//     PG_RETURN_BOOL(isOpening);
-// }
+    // Set the threshold
+    int threshold = even ? 3 : 2;
+    int nb_spaces = 0;
+
+    // Iterate until the specified threshold is reached or the string ends
+    while (found && str[counter] != '\0') {
+        counter++;
+        if (str[counter] == ' ') {
+            nb_spaces++;
+        }
+        if (nb_spaces == threshold) {
+            found = false;
+        }
+    }
+    
+    char *result = palloc0(counter + 1);
+    strncpy(result, str, counter);
+    result[counter] = '\0';
+
+    elog(NOTICE, "result of str1 after trimming: %s", result);
+
+    int length = strlen(result);
+    bool has_opening = strncmp(result, str2, length) == 0;
+
+    // Cleanup and return the result
+    PG_FREE_IF_COPY(chessgame, 0);
+    PG_FREE_IF_COPY(chessgame2, 1);
+    pfree(str);
+    pfree(str2);
+    pfree(result);
+    PG_RETURN_BOOL(has_opening);
+}
 
 /*****************************************************************************/
-
+// 4)
 // - hasBoard(chessgame, chessboard, integer) -> bool: Returns true if
 // the chessgame contains the given board state in its first N
 // half-moves. Only compare the state of the pieces and not compare
 // the move count, castling right, en passant pieces, ...
 
-/*
-to-do:
-    use getboard and apply the requested amount of moves and check if the state of the bard gives the right fen
-*/
-// shofi
 PG_FUNCTION_INFO_V1(hasBoard);
 Datum 
 hasBoard(PG_FUNCTION_ARGS) 

@@ -66,10 +66,10 @@ CREATE FUNCTION getFirstMoves(chessgame, int)
     AS 'MODULE_PATHNAME', 'getFirstMoves'
     LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
--- CREATE FUNCTION hasOpening(chessgame, chessgame)
---     RETURNS bool
---     AS 'MODULE_PATHNAME', 'hasOpening'
---     LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+CREATE FUNCTION hasOpening(chessgame, chessgame)
+    RETURNS boolean
+    AS '$libdir/chess', 'hasOpening'
+    LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
 CREATE FUNCTION hasBoard(chessgame, chessboard, int)
     RETURNS boolean
