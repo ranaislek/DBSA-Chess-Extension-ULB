@@ -66,10 +66,14 @@ CREATE FUNCTION getFirstMoves(chessgame, int)
     AS 'MODULE_PATHNAME', 'getFirstMoves'
     LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
-CREATE FUNCTION hasOpening(chessgame, chessgame)
-    RETURNS boolean
-    AS '$libdir/chess', 'hasOpening'
-    LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+CREATE FUNCTION hasOpening(chessgame1 chessgame, chessgame2 chessgame)
+  RETURNS boolean
+  AS $$
+  BEGIN
+    return hasOpening_cmp(chessgame1, chessgame2) = 0;  
+  END
+  $$
+  LANGUAGE PLPGSQL;
 
 CREATE FUNCTION hasBoard(chessgame, chessboard, int)
     RETURNS boolean
@@ -80,4 +84,86 @@ CREATE FUNCTION hasBoard(chessgame, chessboard, int)
  * Indexing
  ******************************************************************************/
 
--- Add your indexing definitions here, if needed.
+/* B-Tree comparison functions */
+
+CREATE OR REPLACE FUNCTION chess_eq(chessgame, chessgame)
+  RETURNS boolean
+  AS 'MODULE_PATHNAME', 'chess_eq'
+  LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION chess_lt(chessgame, chessgame)
+  RETURNS boolean
+  AS 'MODULE_PATHNAME'
+  LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION chess_le(chessgame, chessgame)
+  RETURNS boolean
+  AS 'MODULE_PATHNAME'
+  LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION chess_gt(chessgame, chessgame)
+  RETURNS boolean
+  AS 'MODULE_PATHNAME'
+  LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION chess_ge(chessgame, chessgame)
+  RETURNS boolean
+  AS 'MODULE_PATHNAME'
+  LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+
+
+/**************************/
+
+/* B-Tree comparison operators */
+
+CREATE OPERATOR = (
+  LEFTARG = chessgame, RIGHTARG = chessgame,
+  PROCEDURE = chess_eq,
+  COMMUTATOR = =, NEGATOR = <>
+);
+CREATE OPERATOR < (
+  LEFTARG = chessgame, RIGHTARG = chessgame,
+  PROCEDURE = chess_lt,
+  COMMUTATOR = >, NEGATOR = >=
+);
+CREATE OPERATOR <= (
+  LEFTARG = chessgame, RIGHTARG = chessgame,
+  PROCEDURE = chess_le,
+  COMMUTATOR = >=, NEGATOR = >
+);
+CREATE OPERATOR >= (
+  LEFTARG = chessgame, RIGHTARG = chessgame,
+  PROCEDURE = chess_ge,
+  COMMUTATOR = <=, NEGATOR = <
+);
+CREATE OPERATOR > (
+  LEFTARG = chessgame, RIGHTARG = chessgame,
+  PROCEDURE = chess_gt,
+  COMMUTATOR = <, NEGATOR = <=
+);
+
+/**************************/
+
+/* B-Tree support function */
+
+CREATE OR REPLACE FUNCTION chess_cmp(chessgame, chessgame)
+  RETURNS integer
+  AS 'MODULE_PATHNAME'
+  LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+
+/**************************/
+
+/* B-Tree operator class */
+
+CREATE OPERATOR CLASS chess_ops
+DEFAULT FOR TYPE chessgame USING btree
+AS
+        OPERATOR        1       <  ,
+        OPERATOR        2       <= ,
+        OPERATOR        3       =  ,
+        OPERATOR        4       >= ,
+        OPERATOR        5       >  ,
+        FUNCTION        1       chess_cmp(chessgame, chessgame);
+
+/**************************/
+

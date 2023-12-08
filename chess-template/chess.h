@@ -54,6 +54,15 @@ Datum getFirstMoves(PG_FUNCTION_ARGS);
 Datum hasOpening(PG_FUNCTION_ARGS);
 Datum hasBoard(PG_FUNCTION_ARGS);
 
+static int chess_cmp_internal(ChessGame *game1, ChessGame *game2);
+Datum chess_eq(PG_FUNCTION_ARGS);
+Datum chess_ne(PG_FUNCTION_ARGS);
+Datum chess_lt(PG_FUNCTION_ARGS);
+Datum chess_le(PG_FUNCTION_ARGS);
+Datum chess_gt(PG_FUNCTION_ARGS);
+Datum chess_ge(PG_FUNCTION_ARGS);
+Datum chess_cmp(PG_FUNCTION_ARGS);
+
 static ChessGame *str_to_chessgame(const char *str);
 static ChessBoard *str_to_chessboard(char *str);
 #endif
