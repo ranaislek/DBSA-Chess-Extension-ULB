@@ -170,6 +170,8 @@ getFirstMoves(PG_FUNCTION_ARGS)
 // should only contain the opening moves that we want to check for,
 // which can be of any length, i.e., m half-moves.
 
+// hasopening'in chess_cmp fonksiyonunu çağırması lazım
+
 PG_FUNCTION_INFO_V1(hasOpening);
 Datum 
 hasOpening(PG_FUNCTION_ARGS) {
@@ -240,24 +242,6 @@ hasOpening(PG_FUNCTION_ARGS) {
 // half-moves. Only compare the state of the pieces and not compare
 // the move count, castling right, en passant pieces, ...
 
-// PG_FUNCTION_INFO_V1(hasBoard);
-// Datum 
-// hasBoard(PG_FUNCTION_ARGS) 
-// {
-//     ChessGame *chessgame = PG_GETARG_CHESSGAME_P(0);
-//     ChessBoard *chessboard = palloc0(sizeof(ChessBoard));
-//     ChessBoard *chessboard2 = PG_GETARG_CHESSBOARD_P(1);
-//     int half_moves = PG_GETARG_INT32(2);
-    
-//     SCL_recordApply(chessgame->game, chessboard, half_moves);
-//     PG_FREE_IF_COPY(chessgame,0);
-
-//     uint32_t hash = SCL_boardHash32(chessboard);
-//     uint32_t hash2 = SCL_boardHash32(chessboard2);
-
-//     PG_RETURN_BOOL(hash == hash2);
-// }
-
 PG_FUNCTION_INFO_V1(hasBoard);
 Datum 
 hasBoard(PG_FUNCTION_ARGS) 
@@ -280,6 +264,11 @@ hasBoard(PG_FUNCTION_ARGS)
         }
 
     }
+
+    // Cleanup and return the result
+    PG_FREE_IF_COPY(chessgame, 0);
+    PG_FREE_IF_COPY(chessboard2, 1);
+    pfree(chessboard);
     PG_RETURN_BOOL(0);
 }
 /*****************************************************************************/
