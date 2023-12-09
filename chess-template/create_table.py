@@ -38,10 +38,7 @@ def main():
         conn = psycopg2.connect(**db_params)
         cursor = conn.cursor()
 
-        # Replace 'your_table_name' with the actual table name
         create_table(cursor)
-
-        # Replace 'your_csv_file.csv' with the actual CSV file path
         csv_file_path = '/home/ranaislek/Documents/GitHub/chess-extension/output100.csv'
         insert_values(cursor, csv_file_path)
 
