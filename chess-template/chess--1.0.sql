@@ -70,7 +70,7 @@ CREATE FUNCTION hasOpening(chessgame1 chessgame, chessgame2 chessgame)
   RETURNS boolean
   AS $$
   BEGIN
-    return hasOpening_cmp(chessgame1, chessgame2) = 0;  
+    return chess_cmp(chessgame1, chessgame2) = 0;  
   END
   $$
   LANGUAGE PLPGSQL;
@@ -93,22 +93,22 @@ CREATE OR REPLACE FUNCTION chess_eq(chessgame, chessgame)
 
 CREATE OR REPLACE FUNCTION chess_lt(chessgame, chessgame)
   RETURNS boolean
-  AS 'MODULE_PATHNAME'
+  AS 'MODULE_PATHNAME', 'chess_lt'
   LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION chess_le(chessgame, chessgame)
   RETURNS boolean
-  AS 'MODULE_PATHNAME'
+  AS 'MODULE_PATHNAME', 'chess_le'
   LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION chess_gt(chessgame, chessgame)
   RETURNS boolean
-  AS 'MODULE_PATHNAME'
+  AS 'MODULE_PATHNAME', 'chess_gt'
   LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION chess_ge(chessgame, chessgame)
   RETURNS boolean
-  AS 'MODULE_PATHNAME'
+  AS 'MODULE_PATHNAME', 'chess_ge'
   LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
 
