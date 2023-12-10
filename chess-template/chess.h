@@ -54,7 +54,7 @@ Datum getFirstMoves(PG_FUNCTION_ARGS);
 Datum hasOpening(PG_FUNCTION_ARGS);
 Datum hasBoard(PG_FUNCTION_ARGS);
 
-static int chess_cmp_internal(ChessGame *game1, ChessGame *game2);
+static int hasOpening_cmp_internal(ChessGame *game1, ChessGame *game2);
 Datum chess_eq(PG_FUNCTION_ARGS);
 Datum chess_ne(PG_FUNCTION_ARGS);
 Datum chess_lt(PG_FUNCTION_ARGS);

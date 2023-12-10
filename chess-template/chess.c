@@ -170,8 +170,6 @@ getFirstMoves(PG_FUNCTION_ARGS)
 // should only contain the opening moves that we want to check for,
 // which can be of any length, i.e., m half-moves.
 
-// hasopening'in chess_cmp fonksiyonunu çağırması lazım
-
 PG_FUNCTION_INFO_V1(hasOpening);
 Datum 
 hasOpening(PG_FUNCTION_ARGS) {
@@ -274,24 +272,34 @@ hasBoard(PG_FUNCTION_ARGS)
 /*****************************************************************************/
 
 // //INDEX B-tree
-
 static int
-chess_cmp_internal(ChessGame *game1, ChessGame *game2)
+hasOpening_cmp_internal(ChessGame *game1, ChessGame *game2)
 {
-    //convert chessgame to str
-    char *str1 = palloc0(sizeof(char)*SCL_RECORD_MAX_LENGTH);
-    SCL_printPGN(game1->game, str1, 0);
 
-    char *str2 = palloc0(sizeof(char)*SCL_RECORD_MAX_LENGTH);
-    SCL_printPGN(game2->game, str2, 0);
+    int half_moves = SCL_recordLength(game2->game);
 
-    int result = strcmp(str1, str2);
+    ChessBoard *chessboard = palloc0(sizeof(ChessBoard));
+    ChessBoard *chessboard2 = palloc0(sizeof(ChessBoard));
 
-    if (result < 0)
+    SCL_recordApply(game1->game, chessboard, half_moves);
+    uint32_t hash = SCL_boardHash32(chessboard);
+
+    SCL_recordApply(game2->game, chessboard2, half_moves);
+    uint32_t hash2 = SCL_boardHash32(chessboard2);
+
+
+    if(hash == hash2){
+        return 0;
+    }
+    else if (hash < hash2)
+    {
         return -1;
-    if (result > 0)
+    }
+    else
+    {
         return 1;
-    return 0;
+        
+    }
 }
 
 PG_FUNCTION_INFO_V1(chess_cmp);
@@ -300,7 +308,7 @@ chess_cmp(PG_FUNCTION_ARGS)
 {
   ChessGame *c = PG_GETARG_CHESSGAME_P(0);
   ChessGame *d = PG_GETARG_CHESSGAME_P(1);
-  int result = chess_cmp_internal(c, d);
+  int result = hasOpening_cmp_internal(c, d);
   PG_FREE_IF_COPY(c, 0);
   PG_FREE_IF_COPY(d, 1);
   PG_RETURN_INT32(result);
@@ -312,7 +320,8 @@ chess_eq(PG_FUNCTION_ARGS)
 {
   ChessGame *c = PG_GETARG_CHESSGAME_P(0);
   ChessGame *d = PG_GETARG_CHESSGAME_P(1);
-  bool result = chess_cmp_internal(c, d) == 0;
+
+  bool result = hasOpening_cmp_internal(c, d) == 0;
   PG_FREE_IF_COPY(c, 0);
   PG_FREE_IF_COPY(d, 1);
   PG_RETURN_BOOL(result);
@@ -324,7 +333,7 @@ chess_ne(PG_FUNCTION_ARGS)
 {
   ChessGame *c = PG_GETARG_CHESSGAME_P(0);
   ChessGame *d = PG_GETARG_CHESSGAME_P(1);
-  bool result = chess_cmp_internal(c, d) != 0;
+  bool result = hasOpening_cmp_internal(c, d) != 0;
   PG_FREE_IF_COPY(c, 0);
   PG_FREE_IF_COPY(d, 1);
   PG_RETURN_BOOL(result);
@@ -336,7 +345,7 @@ chess_lt(PG_FUNCTION_ARGS)
 {
   ChessGame *c = PG_GETARG_CHESSGAME_P(0);
   ChessGame *d = PG_GETARG_CHESSGAME_P(1);
-  bool result = chess_cmp_internal(c, d) < 0;
+  bool result = hasOpening_cmp_internal(c, d) < 0;
   PG_FREE_IF_COPY(c, 0);
   PG_FREE_IF_COPY(d, 1);
   PG_RETURN_BOOL(result);
@@ -348,7 +357,7 @@ chess_le(PG_FUNCTION_ARGS)
 {
   ChessGame *c = PG_GETARG_CHESSGAME_P(0);
   ChessGame *d = PG_GETARG_CHESSGAME_P(1);
-  bool result = chess_cmp_internal(c, d) <= 0;
+  bool result = hasOpening_cmp_internal(c, d) <= 0;
   PG_FREE_IF_COPY(c, 0);
   PG_FREE_IF_COPY(d, 1);
   PG_RETURN_BOOL(result);
@@ -360,7 +369,7 @@ chess_gt(PG_FUNCTION_ARGS)
 {
   ChessGame *c = PG_GETARG_CHESSGAME_P(0);
   ChessGame *d = PG_GETARG_CHESSGAME_P(1);
-  bool result = chess_cmp_internal(c, d) > 0;
+  bool result = hasOpening_cmp_internal(c, d) > 0;
   PG_FREE_IF_COPY(c, 0);
   PG_FREE_IF_COPY(d, 1);
   PG_RETURN_BOOL(result);
@@ -372,7 +381,7 @@ chess_ge(PG_FUNCTION_ARGS)
 {
   ChessGame *c = PG_GETARG_CHESSGAME_P(0);
   ChessGame *d = PG_GETARG_CHESSGAME_P(1);
-  bool result = chess_cmp_internal(c, d) >= 0;
+  bool result = hasOpening_cmp_internal(c, d) >= 0;
   PG_FREE_IF_COPY(c, 0);
   PG_FREE_IF_COPY(d, 1);
   PG_RETURN_BOOL(result);

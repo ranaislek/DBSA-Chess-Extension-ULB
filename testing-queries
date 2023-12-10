@@ -3,6 +3,9 @@
 DROP TABLE IF EXISTS test_games;
 DROP TABLE IF EXISTS games;
 DROP TABLE IF EXISTS favoriteGames;
+DROP TABLE IF EXISTS chessgames100;
+DROP TABLE IF EXISTS chessgames1000;
+DROP TABLE IF EXISTS t;
 DROP EXTENSION IF EXISTS chess;
 CREATE EXTENSION chess;
 
@@ -23,23 +26,47 @@ INSERT INTO games(game) VALUES ('1. e4 d5 2. exd5 Qxd5 3. Nc3 Qd8 4. Bc4 Nf6 5. 
 CREATE TABLE favoriteGames (id serial primary key, game chessgame);
 INSERT INTO favoriteGames (game) VALUES ('1. e4 e5 2. Nf3 Nf6 3. d3');
 INSERT INTO favoriteGames (game) VALUES ('1. e4 d5 2. exd5 Qxd5 3. Nc3');
+--run until here to prepare the tables and extension from scratch--
 
-SELECT getBoard(game,0) FROM games;
-SELECT getBoard(game,3) FROM games;
-SELECT getBoard(game,100) FROM games;  -- corner case: more than existing half_move
+select * from games;
+
+SELECT getBoard(game,7) FROM games;
+SELECT getBoard(game,82) FROM games;   -- gives same board state after 82 which is the number of half_moves
+SELECT getBoard(game,100) FROM games;  -- corner case: more than existing half_move,
+                                       -- it keeps displaying the last state of the board after the existed last half_move
 
 SELECT getFirstMoves(game,3) FROM games;
+SELECT hasOpening(game,'1.Nf3 Nf6') from games;
+SELECT hasOpening(game,'1.e4 d5 2. exd5') from games;
 
-SELECT hasOpening(game,'1. e4 e7') from games;
-SELECT hasOpening(game,'1. e4 d5 2. exd5') from games;
+select chess_cmp('1. Nf3 Nf6 2. a','1.Nf3 Nf6'); -- return 0 when true
 
-select hasBoard(game, 'rnbqkb1r/pppppppp/5n2/8/2P5/5N2/PP1PPPPP/RNBQKB1R b KQkq c3 0 2', 3) from games;
+explain analyse select game from games;
+
+-- the database is too small to observe the progress in execution time
+explain analyse select game from games where hasOpening(game,'1.Nf3 Nf6');
+CREATE INDEX chess1_idx ON games(game);
+SET enable_seqscan = OFF;
+explain analyse select * from games where hasOpening(game,'1.Nf3 Nf6');
+
+
+SELECT getBoard(game,7) FROM games;
+
+--for first game (check first row):
+select hasBoard(game, 'rnbqk2r/ppppppbp/5np1/8/2PP4/2N2N2/PP2PPPP/R1BQKB1R b KQkq d3 0 4', 7) from games;
+select hasBoard(game, 'rnbqk2r/ppppppbp/5np1/8/2PP4/2N2N2/PP2PPPP/R1BQKB1R b KQkq d3 0 4', 10) from games;
+select hasBoard(game, 'rnbqk2r/ppppppbp/5np1/8/2PP4/2N2N2/PP2PPPP/R1BQKB1R b KQkq d3 0 4', 5) from games;
+
+-- for second game (check second row):
+select hasBoard(game, 'rnbqkbnr/ppp1pppp/8/8/2B5/2N5/PPPP1PPP/R1BQK1NR b KQkq - 3 4', 7) from games;
+select hasBoard(game, 'rnbqkbnr/ppp1pppp/8/8/2B5/2N5/PPPP1PPP/R1BQK1NR b KQkq - 3 4', 10) from games;
+select hasBoard(game, 'rnbqkbnr/ppp1pppp/8/8/2B5/2N5/PPPP1PPP/R1BQK1NR b KQkq - 3 4', 5) from games;
 -- functions from project document:
 
 -- How many games had the given board state at any time during the game:
 SELECT count(*)
 FROM games
-WHERE hasboard(game, 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 10);
+WHERE hasboard(game, 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 0);
 SELECT count(*)
 FROM games
 WHERE hasboard(game, 'rnbqkb1r/pppppppp/5n2/8/2P5/5N2/PP1PPPPP/RNBQKB1R b KQkq c3 0 2', 3);
@@ -56,3 +83,39 @@ WHERE hasopening(g.game, getFirstMoves(f.game, 1));
 SELECT g.game
 FROM games g, favoriteGames f
 WHERE hasopening(g.game, getFirstMoves(f.game, 2));
+
+--WRITE OUTPUTS UNDER EACH QUEERY!!!!!!!!!!11
+
+
+-- INDEXING: B+ TREE TESTS AND COMPARISONS
+--Let's look at a larger database and compare the execution times w/wo indexing:
+
+-- TO DO: FIRST RUN CREATE_TABLE.PY TO CREATE A LARGER TABLE! THEN RUN BELOW COMMANDS!
+SELECT count(*) from chessgames1000;
+
+-- let's call hasOpening function and observe the improvement in execution time:
+SET enable_seqscan = ON;
+EXPLAIN ANALYZE SELECT moves FROM chessgames1000 WHERE hasOpening(moves,'1.Nf3 Nf6'); -- 64.000ms on avg.
+CREATE INDEX chessgame1_idx ON chessgames1000(moves);
+SET enable_seqscan = OFF;
+EXPLAIN ANALYZE SELECT moves FROM chessgames1000 WHERE hasOpening(moves,'1.Nf3 Nf6'); -- 0.055ms on avg.
+
+-- now to observe indexing better, let's trigger one operator such as >, <, = and observe the improvement:
+SELECT count(moves) FROM chessgames1000 WHERE moves > '1. e4';
+SET enable_seqscan = ON;
+EXPLAIN ANALYZE SELECT moves FROM chessgames1000 WHERE moves > '1. e4'; -- 60.000ms on avg.
+CREATE INDEX chessgame2_idx ON chessgames1000(moves);
+SET enable_seqscan = OFF;
+EXPLAIN ANALYZE SELECT moves FROM chessgames1000 WHERE moves > '1. e4'; --5.000ms on avg.
+
+
+-- below in unnecessary
+-- check chess_cmp function
+SELECT moves FROM chessgames1000 LIMIT 100;
+SELECT count(moves) FROM chessgames1000 where moves = '1. Nf3 Rxh1*';
+SET enable_seqscan = ON;
+explain analyse select moves from chessgames1000 where chess_cmp(moves,'1. Nf3 Rxh1*') = 0; -- 60.000ms on avg.
+CREATE INDEX chessgame3_idx ON chessgames1000(moves);
+SET enable_seqscan = OFF;
+explain analyse select moves from chessgames1000 where chess_cmp(moves,'1. Nf3 Rxh1*') = 0;
+

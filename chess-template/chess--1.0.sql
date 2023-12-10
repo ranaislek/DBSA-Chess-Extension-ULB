@@ -66,14 +66,12 @@ CREATE FUNCTION getFirstMoves(chessgame, int)
     AS 'MODULE_PATHNAME', 'getFirstMoves'
     LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
-CREATE FUNCTION hasOpening(chessgame1 chessgame, chessgame2 chessgame)
+CREATE FUNCTION hasOpening(game chessgame, opening_game chessgame)
   RETURNS boolean
   AS $$
-  BEGIN
-    return chess_cmp(chessgame1, chessgame2) = 0;  
-  END
+     SELECT game = opening_game;  -- calls chess_eq function
   $$
-  LANGUAGE PLPGSQL;
+  LANGUAGE SQL;
 
 CREATE FUNCTION hasBoard(chessgame, chessboard, int)
     RETURNS boolean
@@ -148,7 +146,7 @@ CREATE OPERATOR > (
 
 CREATE OR REPLACE FUNCTION chess_cmp(chessgame, chessgame)
   RETURNS integer
-  AS 'MODULE_PATHNAME'
+  AS 'MODULE_PATHNAME', 'chess_cmp'
   LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
 /**************************/
