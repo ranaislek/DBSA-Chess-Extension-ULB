@@ -28,55 +28,112 @@ INSERT INTO favoriteGames (game) VALUES ('1. e4 e5 2. Nf3 Nf6 3. d3');
 INSERT INTO favoriteGames (game) VALUES ('1. e4 d5 2. exd5 Qxd5 3. Nc3');
 --run until here to prepare the tables and extension from scratch--
 
-select * from games;
+SELECT * FROM games;
+SELECT * FROM favoriteGames;
 
+-- 1) Tests for getBoard() function:
+SELECT getBoard(game,0) FROM games;    -- initial state of the board
+-- 1) rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+-- 2) rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 SELECT getBoard(game,7) FROM games;
+-- 1) rnbqk2r/ppppppbp/5np1/8/2PP4/2N2N2/PP2PPPP/R1BQKB1R b KQkq d3 0 4
+-- 2) rnbqkbnr/ppp1pppp/8/8/2B5/2N5/PPPP1PPP/R1BQK1NR b KQkq - 3 4
 SELECT getBoard(game,82) FROM games;   -- gives same board state after 82 which is the number of half_moves
+-- 1) 1Q6/5pk1/2p3p1/1p2N2p/1b5P/1bn5/2r3P1/2K5 w - - 16 42
+-- 2) 3Q1k1r/2p2ppp/6q1/3R4/5b2/7P/PPP2PP1/4K2R b K - 2 21
+SELECT getBoard(game,83) FROM games;   -- same output as above
+-- 1) 1Q6/5pk1/2p3p1/1p2N2p/1b5P/1bn5/2r3P1/2K5 w - - 16 42
+-- 2) 3Q1k1r/2p2ppp/6q1/3R4/5b2/7P/PPP2PP1/4K2R b K - 2 21
 SELECT getBoard(game,100) FROM games;  -- corner case: more than existing half_move,
                                        -- it keeps displaying the last state of the board after the existed last half_move
 
+-- 3) Tests for getFirstMoves() and hasOpening() functions:
+SELECT * FROM games;
+-- 1) 1. Nf3 Nf6 2. c4 g6 3. Nc3 Bg7 4. d4 O-O 5. Bf4 d5 6. Qb3 dxc4 7. Qxc4 c6 8. e4 Nbd7 9. Rd1 Nb6 10. Qc5 Bg4 11. Bg5 Na4 12. Qa3 Nxc3 13. bxc3 Nxe4 14. Bxe7 Qb6 15. Bc4 Nxc3 16. Bc5 Rfe8+ 17. Kf1 Be6 18. Bxb6 Bxc4+ 19. Kg1 Ne2+ 20. Kf1 Nxd4+ 21. Kg1 Ne2+ 22. Kf1 Nc3+ 23. Kg1 axb6 24. Qb4 Ra4 25. Qxb6 Nxd1 26. h3 Rxa2 27. Kh2 Nxf2 28. Re1 Rxe1 29. Qd8+ Bf8 30. Nxe1 Bd5 31. Nf3 Ne4 32. Qb8 b5 33. h4 h5 34. Ne5 Kg7 35. Kg1 Bc5+ 36. Kf1 Ng3+ 37. Ke1 Bb4+ 38. Kd1 Bb3+ 39. Kc1 Ne2+ 40. Kb1 Nc3+ 41. Kc1 Rc2#
+-- 2) 1. e4 d5 2. exd5 Qxd5 3. Nc3 Qd8 4. Bc4 Nf6 5. Nf3 Bg4 6. h3 Bxf3 7. Qxf3 e6 8. Qxb7 Nbd7 9. Nb5 Rc8 10. Nxa7 Nb6 11. Nxc8 Nxc8 12. d4 Nd6 13. Bb5+ Nxb5 14. Qxb5+ Nd7 15. d5 exd5 16. Be3 Bd6 17. Rd1 Qf6 18. Rxd5 Qg6 19. Bf4 Bxf4 20. Qxd7+ Kf8 21. Qd8#
 SELECT getFirstMoves(game,3) FROM games;
+-- 1) 1. Nf3 Nf6 2. c4*
+-- 2) 1. e4 d5 2. exd5*
+
 SELECT hasOpening(game,'1.Nf3 Nf6') from games;
+-- 1) true
+-- 2) false
 SELECT hasOpening(game,'1.e4 d5 2. exd5') from games;
+-- 1) false
+-- 2) true
+
+SELECT getFirstMoves(game,6) FROM games;
+-- 1) 1. Nf3 Nf6 2. c4 g6 3. Nc3 Bg7*
+-- 2) 1. e4 d5 2. exd5 Qxd5 3. Nc3 Qd8*
+SELECT hasOpening(game,'1.Nf3 Nf6') from games;
+-- 1) true
+-- 2) false
+SELECT hasOpening(game,'1.e4 d5 2. exd5') from games;
+-- 1) false
+-- 2) true
 
 select chess_cmp('1. Nf3 Nf6 2. a','1.Nf3 Nf6'); -- return 0 when true
 
-explain analyse select game from games;
-
--- the database is too small to observe the progress in execution time
-explain analyse select game from games where hasOpening(game,'1.Nf3 Nf6');
-CREATE INDEX chess1_idx ON games(game);
-SET enable_seqscan = OFF;
-explain analyse select * from games where hasOpening(game,'1.Nf3 Nf6');
-
+-- 4) Tests for hasBoard() function:
+-- for the initial states:
+SELECT hasBoard(game, 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 1) FROM games;
 
 SELECT getBoard(game,7) FROM games;
+-- 1) rnbqk2r/ppppppbp/5np1/8/2PP4/2N2N2/PP2PPPP/R1BQKB1R b KQkq d3 0 4
+-- 2) rnbqkbnr/ppp1pppp/8/8/2B5/2N5/PPPP1PPP/R1BQK1NR b KQkq - 3 4
 
 --for first game (check first row):
 select hasBoard(game, 'rnbqk2r/ppppppbp/5np1/8/2PP4/2N2N2/PP2PPPP/R1BQKB1R b KQkq d3 0 4', 7) from games;
+-- 1) true
+-- 2) false
 select hasBoard(game, 'rnbqk2r/ppppppbp/5np1/8/2PP4/2N2N2/PP2PPPP/R1BQKB1R b KQkq d3 0 4', 10) from games;
+-- 1) true
+-- 2) false
 select hasBoard(game, 'rnbqk2r/ppppppbp/5np1/8/2PP4/2N2N2/PP2PPPP/R1BQKB1R b KQkq d3 0 4', 5) from games;
+-- 1) false
+-- 2) false
 
 -- for second game (check second row):
 select hasBoard(game, 'rnbqkbnr/ppp1pppp/8/8/2B5/2N5/PPPP1PPP/R1BQK1NR b KQkq - 3 4', 7) from games;
+-- 1) false
+-- 2) true
 select hasBoard(game, 'rnbqkbnr/ppp1pppp/8/8/2B5/2N5/PPPP1PPP/R1BQK1NR b KQkq - 3 4', 10) from games;
+-- 1) false
+-- 2) true
 select hasBoard(game, 'rnbqkbnr/ppp1pppp/8/8/2B5/2N5/PPPP1PPP/R1BQK1NR b KQkq - 3 4', 5) from games;
--- functions from project document:
+-- 1) false
+-- 2) false
 
--- How many games had the given board state at any time during the game:
+-- Functions from project document:
+-- 1.How many games had the given board state at any time during the game:
+SELECT * FROM games;
+
+-- example for the initial state:
+SELECT getboard(game, 0) FROM games;
+-- 1) rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+-- 2) rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 SELECT count(*)
 FROM games
-WHERE hasboard(game, 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 0);
+WHERE hasBoard(game, 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 1);
+
+SELECT getboard(game, 3) FROM games;
+-- 1) rnbqkb1r/pppppppp/5n2/8/2P5/5N2/PP1PPPPP/RNBQKB1R b KQkq c3 0 2
+-- 2) rnbqkbnr/ppp1pppp/8/3P4/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 2
 SELECT count(*)
 FROM games
-WHERE hasboard(game, 'rnbqkb1r/pppppppp/5n2/8/2P5/5N2/PP1PPPPP/RNBQKB1R b KQkq c3 0 2', 3);
+WHERE hasBoard(game, 'rnbqkb1r/pppppppp/5n2/8/2P5/5N2/PP1PPPPP/RNBQKB1R b KQkq c3 0 2', 3);
 
--- How many games started with the given sequence of moves:
+SELECT count(*)
+FROM games
+WHERE hasBoard(game, 'rnbqkbnr/ppp1pppp/8/3P4/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 2', 3);
+
+-- 2.How many games started with the given sequence of moves:
+SELECT * FROM games;
 SELECT count(*)
 FROM games
 WHERE hasopening(game, '1. e4');
 
--- Which games have the same 10 first half-moves as any of the games stored in table favoriteGames:
+-- 3.Which games have the same 10 first half-moves as any of the games stored in table favoriteGames:
 SELECT g.game
 FROM games g, favoriteGames f
 WHERE hasopening(g.game, getFirstMoves(f.game, 1));
@@ -84,31 +141,74 @@ SELECT g.game
 FROM games g, favoriteGames f
 WHERE hasopening(g.game, getFirstMoves(f.game, 2));
 
---WRITE OUTPUTS UNDER EACH QUEERY!!!!!!!!!!11
-
 
 -- INDEXING: B+ TREE TESTS AND COMPARISONS
---Let's look at a larger database and compare the execution times w/wo indexing:
+    -- Analyses and query plans:
+explain analyse select game from games;
+
+-- the database is too small to observe the progress in execution time
+explain analyse select game from games where hasOpening(game,'1.Nf3 Nf6');
+-- Query Plan:
+-- Seq Scan on games  (cost=0.00..1.02 rows=1 width=512) (actual time=0.019..0.022 rows=1 loops=1)
+--   Filter: (game = '1. Nf3 Nf6*'::chessgame)
+--   Rows Removed by Filter: 1
+-- Planning Time: 0.110 ms
+-- Execution Time: 0.046 ms
+CREATE INDEX chess1_idx ON games(game);
+SET enable_seqscan = ON;
+explain analyse select * from games where hasOpening(game,'1.Nf3 Nf6');
+-- Query Plan:
+-- Seq Scan on games  (cost=0.00..1.02 rows=1 width=516) (actual time=0.013..0.016 rows=1 loops=1)
+--   Filter: (game = '1. Nf3 Nf6*'::chessgame)
+--   Rows Removed by Filter: 1
+-- Planning Time: 0.083 ms
+-- Execution Time: 0.036 ms
+--Observation: We cannot observe a big difference in improvement, since the table is too small
+--             to observe the affect of indexing in terms of execution time.
+-- ********************************************************************************
+--That's why let's look at a larger database and compare the execution times w/wo indexing:
 
 -- TO DO: FIRST RUN CREATE_TABLE.PY TO CREATE A LARGER TABLE! THEN RUN BELOW COMMANDS!
+-- We inserted 100.000 games with the help of python file.
 SELECT count(*) from chessgames1000;
 
 -- let's call hasOpening function and observe the improvement in execution time:
 SET enable_seqscan = ON;
-EXPLAIN ANALYZE SELECT moves FROM chessgames1000 WHERE hasOpening(moves,'1.Nf3 Nf6'); -- 64.000ms on avg.
+EXPLAIN ANALYZE SELECT moves FROM chessgames1000 WHERE hasOpening(moves,'1.Nf3 Nf6'); -- 60.000ms on avg.
+-- Query Plan:
+-- Seq Scan on chessgames1000  (cost=0.00..8482.31 rows=53572 width=512) (actual time=0.125..57.140 rows=4349 loops=1)
+--   Filter: (moves = '1. Nf3 Nf6*'::chessgame)
+--   Rows Removed by Filter: 95651
+-- Planning Time: 0.089 ms
+-- Execution Time: 57.293 ms
 CREATE INDEX chessgame1_idx ON chessgames1000(moves);
 SET enable_seqscan = OFF;
 EXPLAIN ANALYZE SELECT moves FROM chessgames1000 WHERE hasOpening(moves,'1.Nf3 Nf6'); -- 0.055ms on avg.
+-- Query Plan:
+-- Index Only Scan using chessgame1_idx on chessgames1000  (cost=0.67..17807.67 rows=50000 width=512) (actual time=0.028..0.028 rows=0 loops=1)
+--   Index Cond: (moves = '1. Nf3 Nf6*'::chessgame)
+--   Heap Fetches: 0
+-- Planning Time: 0.067 ms
+-- Execution Time: 0.043 ms
+-- Observation: In each query, by nature we have different execution times but in any case one can clearly see
+--              see the improvement in execution time after applying indexing. (57.293ms -> 0.043ms)
 
 -- now to observe indexing better, let's trigger one operator such as >, <, = and observe the improvement:
 SELECT count(moves) FROM chessgames1000 WHERE moves > '1. e4';
 SET enable_seqscan = ON;
 EXPLAIN ANALYZE SELECT moves FROM chessgames1000 WHERE moves > '1. e4'; -- 60.000ms on avg.
+-- Query Plan:
+-- Seq Scan on chessgames1000  (cost=0.00..8393.00 rows=50000 width=512) (actual time=0.030..62.878 rows=56176 loops=1)
+--   Filter: (moves > '1. e4*'::chessgame)
+--   Rows Removed by Filter: 43824
+-- Planning Time: 0.096 ms
+-- Execution Time: 64.380 ms
 CREATE INDEX chessgame2_idx ON chessgames1000(moves);
 SET enable_seqscan = OFF;
 EXPLAIN ANALYZE SELECT moves FROM chessgames1000 WHERE moves > '1. e4'; --5.000ms on avg.
 
-
+-- getboard first index is 0 , hasBoard first index is 1 !! check!!
+    
 -- below in unnecessary
 -- check chess_cmp function
 SELECT moves FROM chessgames1000 LIMIT 100;
