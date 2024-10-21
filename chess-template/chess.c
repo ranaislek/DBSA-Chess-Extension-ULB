@@ -7,6 +7,9 @@
  *
  * Authors: 
  * Rana Islek <rana.islek@ulb.be>
+ * Shofiyyah Nadhiroh <shofiyyah.nadhiroh@ulb.be>
+ * Narmina Mahmudova <narmina.mahmudova@ulb.be>
+ * Herma Elezi <herma.elezi@ulb.be>
  * 
  * 
  */
@@ -22,6 +25,14 @@ use SAN and FEN notation for chess-game and chess-board respectively.
 #include "smallchesslib.h"
 #include "postgres.h"
 #include "lib/stringinfo.h"
+
+#include "access/gin.h"
+#include "access/gin_private.h"
+
+#define GinEqualStrategy           1    /* for @=*/
+
+#define LikeStrategyNumber			3
+#define ILikeStrategyNumber			4
 
 //SAN and FEN notation for chess-game and chess-board respectively.
 
@@ -252,15 +263,25 @@ hasBoard(PG_FUNCTION_ARGS)
     int i;
     uint32_t hash2 = SCL_boardHash32(chessboard2);
 
-    for (i = 1; i < half_moves + 1; ++i)
-    {
-        SCL_recordApply(chessgame->game, chessboard, i);
+    if(half_moves == 0){
+        SCL_recordApply(chessgame->game, chessboard, 0);
         uint32_t hash = SCL_boardHash32(chessboard);
 
         if(hash == hash2){
             PG_RETURN_BOOL(1);
         }
+    }
+    else{
+        for (i = 1; i < half_moves + 1; ++i)
+        {
+            SCL_recordApply(chessgame->game, chessboard, i);
+            uint32_t hash = SCL_boardHash32(chessboard);
 
+            if(hash == hash2){
+                PG_RETURN_BOOL(1);
+            }
+
+        }
     }
 
     // Cleanup and return the result
@@ -387,3 +408,164 @@ chess_ge(PG_FUNCTION_ARGS)
   PG_RETURN_BOOL(result);
 }
 /*****************************************************************************/
+
+/******************************************************************************
+ * GIN Indexing
+ ******************************************************************************/
+
+PGDLLEXPORT Datum gin_extract_value(PG_FUNCTION_ARGS);
+PG_FUNCTION_INFO_V1(gin_extract_value);
+/**
+ * @brief extractValue support function
+ */
+Datum
+gin_extract_value(PG_FUNCTION_ARGS)
+{
+  ChessGame *chessgame = PG_GETARG_CHESSGAME_P(0);
+  ChessBoard *chessboard = palloc0(sizeof(ChessBoard));
+
+  int32 *nkeys = (int32 *) PG_GETARG_POINTER(1);
+  bool **nullFlags = (bool **) PG_GETARG_POINTER(2);
+
+  int half_moves = SCL_recordLength(chessgame->game);
+  char *result = palloc0(sizeof(char)*SCL_FEN_MAX_LENGTH);
+
+  text	*src;
+
+
+  Datum *entries= palloc(sizeof(Datum) * half_moves);
+  for (int i = 0; i < half_moves; i++){
+    SCL_recordApply(chessgame->game, chessboard, i);
+    SCL_boardToFEN(chessboard->board, result);
+    entries[i] = PointerGetDatum(cstring_to_text(result));
+  }
+
+  PG_FREE_IF_COPY(chessgame, 0);
+  PG_RETURN_POINTER(entries);
+}
+
+PGDLLEXPORT Datum gin_extract_query(PG_FUNCTION_ARGS);
+PG_FUNCTION_INFO_V1(gin_extract_query);
+/**
+ * @brief extractQuery support function
+ */
+Datum
+gin_extract_query(PG_FUNCTION_ARGS)
+{
+    int32 *nkeys = (int32 *) PG_GETARG_POINTER(1);
+    StrategyNumber strategy = PG_GETARG_UINT16(2);
+    bool **nullFlags = (bool **) PG_GETARG_POINTER(5);
+    int32 *searchMode = (int32 *) PG_GETARG_POINTER(6);
+    ChessGame *chessgame;
+    Datum *entries = NULL; /* make compiler quiet */
+    *nullFlags = NULL;
+    *searchMode = GIN_SEARCH_MODE_DEFAULT;
+
+//   switch (strategy)
+//   {
+//     case GinEqualStrategy:
+//       chessgame = PG_GETARG_CHESSGAME_P(0);
+//       ChessBoard *chessboard = palloc0(sizeof(ChessBoard));
+      
+//       int half_moves = SCL_recordLength(chessgame->game);
+//       char *result = palloc0(sizeof(char)*SCL_FEN_MAX_LENGTH);
+      
+//       entries= palloc(sizeof(Datum) * half_moves);
+
+//       for (int i = 0; i < half_moves; i++){
+//         SCL_recordApply(chessgame->game, chessboard, i);
+//         SCL_boardToFEN(chessboard->board, result);
+//         entries[i] = PointerGetDatum(cstring_to_text(result));
+//       }
+        
+//       //pfree(routes);
+//       *nkeys = half_moves;
+//       *searchMode = GIN_SEARCH_MODE_DEFAULT;
+
+//       PG_FREE_IF_COPY(chessgame, 0);
+//       break;
+//     default:
+//       elog(ERROR, "gin_extract_query: unknown strategy number: %d",
+//          strategy);
+//   }
+    chessgame = PG_GETARG_CHESSGAME_P(0);
+    ChessBoard *chessboard = palloc0(sizeof(ChessBoard));
+    int half_moves = SCL_recordLength(chessgame->game);
+    char *result = palloc0(sizeof(char)*SCL_FEN_MAX_LENGTH);
+
+    entries= palloc(sizeof(Datum) * half_moves);
+
+    for (int i = 0; i < half_moves; i++){
+    SCL_recordApply(chessgame->game, chessboard, i);
+    SCL_boardToFEN(chessboard->board, result);
+    entries[i] = PointerGetDatum(cstring_to_text(result));
+    }
+
+    //pfree(routes);
+    *nkeys = half_moves;
+    *searchMode = GIN_SEARCH_MODE_DEFAULT;
+
+    PG_FREE_IF_COPY(chessgame, 0);
+
+    PG_RETURN_POINTER(entries);
+}
+
+static int
+chess_compare_internal(ChessBoard *c, ChessBoard *d)
+{    
+    char *str1 = palloc0(sizeof(char)*SCL_RECORD_MAX_LENGTH);
+    SCL_boardToFEN(c->board, str1);
+
+    char *str2 = palloc0(sizeof(char)*SCL_RECORD_MAX_LENGTH);
+    SCL_boardToFEN(d->board, str2);
+
+    int result = strcmp(str1, str2);
+
+    if (result < 0)
+        return -1;
+    if (result > 0)
+        return 1;
+    return 0;
+}
+
+PG_FUNCTION_INFO_V1(compare);
+Datum
+compare(PG_FUNCTION_ARGS)
+{
+  ChessBoard *c = PG_GETARG_CHESSBOARD_P(0);
+  ChessBoard *d = PG_GETARG_CHESSBOARD_P(1);
+  //int result = gin_compare_internal(c, d);
+  
+  PG_FREE_IF_COPY(c, 0);
+  PG_FREE_IF_COPY(d, 1);
+  
+  PG_RETURN_INT32(chess_compare_internal(c, d));
+}
+
+PG_FUNCTION_INFO_V1(gin_consistent);
+Datum
+gin_consistent(PG_FUNCTION_ARGS)
+{
+	bool	   *check = (bool *) PG_GETARG_POINTER(0);
+	StrategyNumber strategy = PG_GETARG_UINT16(1);
+
+	int32		nkeys = PG_GETARG_INT32(3);
+
+	bool	   *recheck = (bool *) PG_GETARG_POINTER(5);
+	bool		res;
+	int32		i;
+
+	/* All cases served by this function are inexact */
+	*recheck = true;
+
+	res = true;
+    for (i = 0; i < nkeys; i++)
+    {
+        if (!check[i])
+        {
+            res = false;
+            break;
+        }
+    }
+	PG_RETURN_BOOL(res);
+}
