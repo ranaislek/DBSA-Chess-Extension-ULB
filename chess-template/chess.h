@@ -5,7 +5,11 @@
  *
  * chess header file
  *
- * Author: Rana Islek <rana.islek@ulb.be>
+ * Authors: 
+ * Rana Islek <rana.islek@ulb.be>
+ * Shofiyyah Nadhiroh <shofiyyah.nadhiroh@ulb.be>
+ * Narmina Mahmudova <narmina.mahmudova@ulb.be>
+ * Herma Elezi <herma.elezi@ulb.be>
  */
 
 #ifndef CHESS_H
