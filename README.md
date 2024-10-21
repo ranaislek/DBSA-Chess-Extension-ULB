@@ -77,5 +77,5 @@ The extension enables efficient storage and retrieval of chess game data using t
   SELECT count(*) FROM chessgames WHERE hasBoard(game, 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 10);
   ```
 ---
-
+You can find more commands from the text file which is provided in the same repo.
 You can extend this as needed and copy it directly into your GitHub repository.
