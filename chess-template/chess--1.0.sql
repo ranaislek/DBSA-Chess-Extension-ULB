@@ -6,7 +6,10 @@
  * chess
  *
  * Authors: 
- Rana Islek <rana.islek@ulb.be>
+ * Rana Islek <rana.islek@ulb.be>
+ * Shofiyyah Nadhiroh <shofiyyah.nadhiroh@ulb.be>
+ * Narmina Mahmudova <narmina.mahmudova@ulb.be>
+ * Herma Elezi <herma.elezi@ulb.be>
  */
 
 -- complain if script is sourced in psql, rather than via CREATE EXTENSION
@@ -165,3 +168,55 @@ AS
 
 /**************************/
 
+/******************************************************************************
+ * GIN Indexing
+ ******************************************************************************/
+ -- GIN Index
+-- CREATE INDEX idx_chessgame_boards
+-- ON chessgame USING GIN (getBoard(chessgame, 0));
+
+CREATE FUNCTION compare(chessboard, chessboard)
+    RETURNS int4
+    AS 'MODULE_PATHNAME', 'compare'
+    LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+
+CREATE FUNCTION gin_extract_value(chessgame, internal)
+    RETURNS internal
+    AS 'MODULE_PATHNAME', 'gin_extract_value'
+    LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+
+CREATE FUNCTION gin_extract_query(chessgame, internal, int2, internal, internal, internal, internal)
+    RETURNS internal
+    AS 'MODULE_PATHNAME', 'gin_extract_query'
+    LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+
+CREATE FUNCTION gin_consistent(internal, int2, text, int4, internal, internal, internal, internal)
+RETURNS bool
+AS 'MODULE_PATHNAME'
+LANGUAGE C IMMUTABLE STRICT;
+
+CREATE FUNCTION hasboardcheck(game chessgame, board chessboard)
+    RETURNS BOOLEAN
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    RETURN true;
+END;
+$$;
+
+CREATE OPERATOR @> (
+    PROCEDURE = hasboardcheck,
+    LEFTARG = chessgame,
+    RIGHTARG = chessboard,
+    COMMUTATOR = =,
+    NEGATOR = <>
+);
+
+
+CREATE OPERATOR CLASS chess_gin_ops
+FOR TYPE chessgame USING gin AS
+  OPERATOR  1    @>(chessgame, chessboard),
+  FUNCTION	1	 compare(chessboard, chessboard),
+  FUNCTION  2    gin_extract_value(chessgame, internal),
+  FUNCTION  3    gin_extract_query(chessgame, internal, int2, internal, internal, internal, internal),
+  FUNCTION	4	 gin_consistent (internal, int2, text, int4, internal, internal, internal, internal);
