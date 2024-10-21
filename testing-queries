@@ -75,9 +75,6 @@ SELECT hasOpening(game,'1.e4 d5 2. exd5') from games;
 select chess_cmp('1. Nf3 Nf6 2. a','1.Nf3 Nf6'); -- return 0 when true
 
 -- 4) Tests for hasBoard() function:
--- for the initial states:
-SELECT hasBoard(game, 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 1) FROM games;
-
 SELECT getBoard(game,7) FROM games;
 -- 1) rnbqk2r/ppppppbp/5np1/8/2PP4/2N2N2/PP2PPPP/R1BQKB1R b KQkq d3 0 4
 -- 2) rnbqkbnr/ppp1pppp/8/8/2B5/2N5/PPPP1PPP/R1BQK1NR b KQkq - 3 4
@@ -114,7 +111,7 @@ SELECT getboard(game, 0) FROM games;
 -- 2) rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 SELECT count(*)
 FROM games
-WHERE hasBoard(game, 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 1);
+WHERE hasBoard(game, 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 0);
 
 SELECT getboard(game, 3) FROM games;
 -- 1) rnbqkb1r/pppppppp/5n2/8/2P5/5N2/PP1PPPPP/RNBQKB1R b KQkq c3 0 2
@@ -129,17 +126,19 @@ WHERE hasBoard(game, 'rnbqkbnr/ppp1pppp/8/3P4/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 2
 
 -- 2.How many games started with the given sequence of moves:
 SELECT * FROM games;
+
+SELECT * FROM games;
 SELECT count(*)
 FROM games
-WHERE hasopening(game, '1. e4');
+WHERE hasOpening(game, '1. e4');
 
 -- 3.Which games have the same 10 first half-moves as any of the games stored in table favoriteGames:
 SELECT g.game
 FROM games g, favoriteGames f
-WHERE hasopening(g.game, getFirstMoves(f.game, 1));
+WHERE hasOpening(g.game, getFirstMoves(f.game, 1));
 SELECT g.game
 FROM games g, favoriteGames f
-WHERE hasopening(g.game, getFirstMoves(f.game, 2));
+WHERE hasOpening(g.game, getFirstMoves(f.game, 2));
 
 
 -- INDEXING: B+ TREE TESTS AND COMPARISONS
@@ -165,7 +164,7 @@ explain analyse select * from games where hasOpening(game,'1.Nf3 Nf6');
 -- Execution Time: 0.036 ms
 --Observation: We cannot observe a big difference in improvement, since the table is too small
 --             to observe the affect of indexing in terms of execution time.
--- ********************************************************************************
+-- ****************************
 --That's why let's look at a larger database and compare the execution times w/wo indexing:
 
 -- TO DO: FIRST RUN CREATE_TABLE.PY TO CREATE A LARGER TABLE! THEN RUN BELOW COMMANDS!
@@ -207,15 +206,36 @@ CREATE INDEX chessgame2_idx ON chessgames1000(moves);
 SET enable_seqscan = OFF;
 EXPLAIN ANALYZE SELECT moves FROM chessgames1000 WHERE moves > '1. e4'; --5.000ms on avg.
 
--- getboard first index is 0 , hasBoard first index is 1 !! check!!
-    
--- below in unnecessary
--- check chess_cmp function
-SELECT moves FROM chessgames1000 LIMIT 100;
-SELECT count(moves) FROM chessgames1000 where moves = '1. Nf3 Rxh1*';
-SET enable_seqscan = ON;
-explain analyse select moves from chessgames1000 where chess_cmp(moves,'1. Nf3 Rxh1*') = 0; -- 60.000ms on avg.
-CREATE INDEX chessgame3_idx ON chessgames1000(moves);
-SET enable_seqscan = OFF;
-explain analyse select moves from chessgames1000 where chess_cmp(moves,'1. Nf3 Rxh1*') = 0;
+-- INDEXING: GIN INDEXING TESTS AND COMPARISONS
+    -- Analyses and query plans:
+CREATE EXTENSION btree_gin;
 
+SELECT * FROM chessgames100;
+EXPLAIN ANALYZE select hasboard(moves, 'rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2', 3) from chessgames100;
+--  Bitmap Heap Scan on games  (cost=40.79..49.04 rows=100 width=1) (actual time=0.909..1.358 rows=100 loops=1)
+--    Heap Blocks: exact=7
+--    ->  Bitmap Index Scan on chess1_idx  (cost=0.00..40.77 rows=100 width=0) (actual time=0.866..0.868 rows=100 loops=1)
+--  Planning Time: 0.161 ms
+--  Execution Time: 1.431 ms
+EXPLAIN ANALYZE select hasboard(moves, 'rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2', 3) from chessgames100 WHERE moves @> ('1. e4 e6');
+--  Seq Scan on games  (cost=0.00..33.12 rows=50 width=1) (actual time=3.260..3.553 rows=100 loops=1)
+--    Filter: (game @> '1'::chessboard)
+--  Planning Time: 0.065 ms
+--  Execution Time: 6.321 ms
+
+CREATE INDEX chessgame4_idx ON chessgames100 USING GIN (moves chess_gin_ops);
+SET enable_seqscan = OFF;
+
+EXPLAIN ANALYZE select hasboard(moves, 'rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2', 3) from chessgames100;
+--  Bitmap Heap Scan on games  (cost=40.79..49.04 rows=100 width=1) (actual time=0.061..0.304 rows=100 loops=1)
+--    Heap Blocks: exact=7
+--    ->  Bitmap Index Scan on chess1_idx  (cost=0.00..40.77 rows=100 width=0) (actual time=0.041..0.042 rows=100 loops=1)
+--  Planning Time: 0.286 ms
+--  Execution Time: 0.333 ms
+EXPLAIN ANALYZE select hasboard(moves, 'rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2', 3) from chessgames100 WHERE moves @> ('1. e4 e6');
+--  Bitmap Heap Scan on games  (cost=0.01..4.40 rows=50 width=1) (actual time=0.005..0.006 rows=0 loops=1)
+--    Recheck Cond: (game @> '1'::chessboard)
+--    ->  Bitmap Index Scan on idx  (cost=0.00..0.00 rows=1 width=0) (actual time=0.002..0.003 rows=0 loops=1)
+--          Index Cond: (game @> '1'::chessboard)
+--  Planning Time: 1.786 ms
+--  Execution Time: 0.572 ms
