@@ -4,7 +4,7 @@ import psycopg2
 def create_table(cursor):
     # Create a table if it doesn't exist
     create_table_query = """
-        CREATE TABLE IF NOT EXISTS chessGames1000 (
+        CREATE TABLE IF NOT EXISTS chessGames100 (
             id SERIAL PRIMARY KEY,
             moves chessgame
         )
@@ -17,20 +17,13 @@ def insert_values(cursor, csv_file_path):
         #next(csv_reader)  # Skip header if present
 
         #retrieve only 100.000 games
-        for i in range(100000):
+        for i in range(100):
             column_value = next(csv_reader)[0]
             insert_query = """
-                INSERT INTO chessGames1000 (moves)
+                INSERT INTO chessGames100 (moves)
                 VALUES (%s)
             """
             cursor.execute(insert_query, (column_value,))
-        # for row in csv_reader:
-        #     column_value = row[0]  
-        #     insert_query = """
-        #         INSERT INTO chessGames1000 (moves)
-        #         VALUES (%s)
-        #     """
-        #     cursor.execute(insert_query, (column_value,))
 
 def main():
     try:
