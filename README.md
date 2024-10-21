@@ -1,30 +1,10 @@
-# chess-extension
+# Chess Database Project
 
-deadline: 10.12.2023
-CHECKPOINT IS AT: 23.11.2023 AT 10AM
-tasks: to do until checkpoint which is thursday :)
+INFOH417 - Database Systems Architecture (2023/24) - ULB <br />
 
-an example of board game and play:
-https://www.pgnmentor.com/players/Adams/
+<div align="center">
+    <img src="https://actus.ulb.be/medias/photo/logo-universite-libre-bruxelles_1661952138925-png?ID_FICHE=19524" alt="ULB Logo" width="300"/>
+</div>
 
-read smallchesslib github readme and overall read smallchess library:
-https://codeberg.org/drummyfish
-
-watch the youtube video: 
-https://www.youtube.com/watch?v=KGYsSoZbVyU
-
-1- data types:
-chessgame -> shofi, narmina
-chessboard -> herma, rana
-
-2 - functions:
-getboard -> shofi
-getfirstmoves -> narmina
-hasopening -> herma
-hasboard -> rana
-
-3 - indices:
-tba
-
-deadline for creating the functions is sunday evening (next meeting)
- 
+<br>
+This project aims to develop a PostgreSQL extension for storing and retrieving chess games, utilizing data types and functions based on common chess notations (PGN, SAN, FEN). The extension will support efficient queries on chess game data with custom indexing.
