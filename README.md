@@ -1,7 +1,3 @@
-Here’s an extension of the README following your provided format:
-
----
-
 # Chess Database Project
 
 INFOH417 - Database Systems Architecture (2023/24) - ULB <br />
